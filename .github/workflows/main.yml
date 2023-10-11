@@ -26,8 +26,8 @@ jobs:
 
       - name: Deploy to github pages
         run: |
-          git init
+          git init -b gh-pages
           git config --global user.email "fkretschmar@googlemail.com"
           git config --global user.name "floydkretschmar"
           git commit -am "new deployment"
-          git push master:gh-pages
+          git push
