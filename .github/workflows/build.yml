@@ -1,4 +1,4 @@
-name: Deploy portfolio website
+name: Build portfolio website
 
 on:
   push:
@@ -9,21 +9,20 @@ permissions:
   contents: write
 
 jobs:
-  deploy:
+  build-and-push:
     runs-on: ubuntu-latest
 
     steps:
       - name: Checkout code
         uses: actions/checkout@v3
 
-      - name: Install dependencies
+      - name: Install node dependencies
         run: npm install
 
       - name: Build source
-        run: |
-          npm run build
+        run: npm run build
 
-      - name: Deploy to github pages
+      - name: Push source to github pages branch
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: npm run deploy
