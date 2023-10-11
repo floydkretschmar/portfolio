@@ -19,5 +19,15 @@ jobs:
       - name: Install dependencies
         run: npm install
 
+      - name: Build source
+        run: |
+          npm run build
+          cd dist
+
       - name: Deploy to github pages
-        run: npm run deploy
+        run: |
+          git init
+          git config --global user.email "fkretschmar@googlemail.com"
+          git config --global user.name "floydkretschmar"
+          git commit -am "new deployment"
+          git push master:gh-pages
