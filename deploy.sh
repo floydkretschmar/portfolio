@@ -17,7 +17,9 @@ ls
 ls ..
 git config --global user.email "fkretschmar@googlemail.com"
 git config --global user.name "floydkretschmar"
-git checkout -b gh-pages
+git fetch origin
+# git checkout -b gh-pages
+git switch -c gh-pages origin/gh-pages
 rm -r *
 cp -r ../dist/* .
 ls
