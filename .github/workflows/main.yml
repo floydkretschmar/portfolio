@@ -4,9 +4,6 @@ on:
   push:
     branches:
       - main
-      
-permissions:
-  contents: write
 
 jobs:
   deploy:
@@ -29,6 +26,8 @@ jobs:
           git config --global user.email "fkretschmar@googlemail.com"
           git config --global user.name "floydkretschmar"
           git init 
+          git remote set-url origin https://x-access-token:${{ secrets.GITHUB_TOKEN }}@github.com/$GITHUB_REPOSITORY
+          git checkout -b gh-pages
           git add -A
           git commit -m "new deployment"
-          git push git@github.com:floydkretschmar/portfolio.git master:gh-pages
+          git push
