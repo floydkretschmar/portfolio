@@ -16,7 +16,8 @@ set -e
 git config --global user.email "fkretschmar@googlemail.com"
 git config --global user.name "floydkretschmar"
 git checkout -b gh-pages
-rm -r *
+# rm -r *
 cp -r ../dist/* .
 git add -A
 git commit -m "new deployment"
+git diff
