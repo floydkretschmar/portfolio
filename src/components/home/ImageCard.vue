@@ -1,99 +1,92 @@
 <template>
-  <div class="item" v-masonry-tile @click="onClick()">
-    <img class="image" :src="image.thumbnail.url" :alt="image.title" />
-    <div class="body">
-      <p v-if="image.title" class="image-title">{{ image.title }}</p>
-      <p v-else class="image-title">No Title Found</p>
-
-      <section class="image-date-view-wrapper">
-        <p class="image-date">{{ image.dateWhenTaken }}</p>
-        <p class="image-views">Views: {{ image.views }}</p>
-      </section>
-    </div>
-  </div>
+  <v-hover v-slot="{ isHovering, props }">
+    <v-card v-masonry-tile class="item" flat @click="onClick()" v-bind="props">
+      <img :src="image.thumbnail.url" class="align-end image" />
+      <v-card-title class="text-h7 text-white d-flex flex-column image-info-container">
+        <div class="image-info" :class="{ 'on-hover': isHovering }">
+          <p>
+            {{ image.title }}
+          </p>
+          <div>
+            <p class="text-caption" style="float: left;">
+              {{ image.dateWhenTaken }}
+            </p>
+            <p class="text-caption" style="float: right;">
+              Views: {{ image.views }}
+            </p>
+          </div>
+        </div>
+      </v-card-title>
+    </v-card>
+  </v-hover>
 </template>
 
 <script>
-  export default {
-    name: "ImageCard",
-    props: ["image"],
-    data() {
-      return {
-        isExpanded: false,
-      };
+export default {
+  name: "ImageCard",
+  props: ["image"],
+  data() {
+    return {
+      isExpanded: false,
+    };
+  },
+  methods: {
+    onClick() {
+      this.isExpanded = !this.isExpanded;
+      this.$emit("imageSelected", this.image);
     },
-    methods: {
-      onClick() {
-        this.isExpanded = !this.isExpanded;
-        this.$emit("imageSelected", this.image);
-      },
-    },
-  };
+  },
+};
 </script>
 
 <style lang="scss">
-  .item {
-    margin-bottom: 20px;
-    width: 450px;
-  }
+.item {
+  margin-bottom: 20px;
+  width: 300px;
+}
 
-  .item a {
-    text-decoration: none;
-  }
+@media only screen and (min-width: 1600px) {
+.item {
+  margin-bottom: 20px;
+  width: 500px;
+}
+}
 
-  .item:hover .body {
-    visibility: visible;
-    opacity: 1;
-  }
+@media only screen and (min-width: 2500px) {
+.item {
+  margin-bottom: 20px;
+  width: 600px;
+}
+}
 
-  .image {
-    width: 100%;
-    height: auto;
-  }
+.image {
+  width: 100%;
+  height: auto;
+}
 
-  .body {
-    padding-left: 1rem;
-    padding-right: 1rem;
-    padding-top: 15px;
-    position: relative;
-    height: 58px;
-    margin: -77px 0 0 0;
-    background: rgba(0, 0, 0, 0.6);
-    color: white;
-    visibility: hidden;
-    opacity: 0;
-    transition:
-      visibility 0s,
-      opacity 0.5s linear;
-  }
+.v-card-title {
+  padding: 0 !important;
+}
 
-  .image-title {
-    font-weight: bold;
-    font-size: medium;
-    margin: 0;
-  }
+.image-info {
+  background: rgba(0, 0, 0, 0.7);
+  opacity: 1;
+  padding: 0.5em;
+  padding-left: 1em;
+  padding-right: 1em;
+  visibility: hidden;
+  opacity: 0;
+  transition:
+    visibility 0s,
+    opacity 0.5s linear;
+}
 
-  .image-owner {
-    margin-top: 0;
-    font-size: 0.8rem;
-  }
+.image-info.on-hover {
+  visibility: visible;
+  opacity: 1;
+}
 
-  .image-title,
-  .image-owner {
-    white-space: nowrap;
-    text-overflow: ellipsis;
-    overflow: hidden;
-  }
-
-  .image-date-view-wrapper {
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
-  }
-
-  .image-date,
-  .image-views {
-    margin-bottom: 0;
-    font-size: 0.8rem;
-  }
+.image-info-container {
+  margin-top: -90px;
+}
 </style>

@@ -1,11 +1,11 @@
 <template>
   <div v-if="selectedImage" class="modal" v>
     <span class="close-button" @click="close()">&times;</span>
-    <img
+    <v-img
       class="modal-content"
       :src="selectedImage.picture.url"
-      :alt="selectedImage.title"
-    />
+      :alt="selectedImage.title">
+    </v-img>
   </div>
 </template>
 
@@ -51,8 +51,8 @@ export default {
   position: relative;
   left: 50%;
   top: 50%;
-  max-width: 90%;
-  max-height: 90%;
+  max-width: 95%;
+  max-height: 95%;
   height: auto;
   width: auto;
 }
