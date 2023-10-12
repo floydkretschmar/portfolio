@@ -3,9 +3,9 @@
     <header class="header">
       <div class="menu">
         <ul>
-          <li><a href="#">Home</a></li>
-          <li><a href="#">About</a></li>
-          <li><a href="#">Contact</a></li>
+          <li><router-link to="/">Home</router-link></li>
+          <li><router-link to="/about">About</router-link></li>
+          <li><router-link to="/content">Contact</router-link></li>
         </ul>
       </div>
       <h1 class="text-centered title">Floyd Kretschmar</h1>

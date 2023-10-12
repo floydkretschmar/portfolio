@@ -1,6 +1,5 @@
 <template>
   <div class="infinite-scroll-container">
-    <HomePageHeader></HomePageHeader>
     <InfiniteScrollContainer
       class="infinite-scroll-container"
       @imageSelected="imageSelected"
@@ -10,16 +9,14 @@
 </template>
 
 <script>
-import InfiniteScrollContainer from "@/components/InfiniteScrollContainer";
-import ImageModal from "@/components/ImageModal";
-import HomePageHeader from "@/components/HomePageHeader";
+import InfiniteScrollContainer from "@/components/home/InfiniteScrollContainer.vue";
+import ImageModal from "@/components/home/ImageModal.vue";
 
 export default {
   name: "HomePage",
   components: {
     InfiniteScrollContainer,
-    ImageModal,
-    HomePageHeader,
+    ImageModal
   },
   methods: {
     imageSelected(image) {
@@ -31,6 +28,6 @@ export default {
 
 <style lang="scss">
 .infinite-scroll-container {
-  height: 97%;
+  height: 100%;
 }
 </style>
