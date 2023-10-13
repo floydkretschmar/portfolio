@@ -1,5 +1,6 @@
 <template>
-  <div
+  <skeleton-container v-if="this.initialLoad"></skeleton-container>
+  <div v-else
       v-masonry
       class="image-container"
       transition-duration="0"
@@ -18,6 +19,7 @@
 <script>
 import ApiService from "@/services/ApiService.ts";
 import ImageCard from "@/components/home/ImageCard.vue";
+import SkeletonContainer from "./SkeletonContainer.vue";
 
 const apiService = new ApiService();
 export default {
@@ -25,15 +27,19 @@ export default {
     itemList: [],
     pageNumber: 1,
     pageCount: 20,
+
     endOfPage: false,
-    isLoading: false
+    isLoading: false,
+    initialLoad: true
   }),
   components: {
-    ImageCard
-  },
+    ImageCard,
+    SkeletonContainer
+},
   created() {
     this.load().then(() => {
       window.addEventListener('scroll', this.handleScroll);
+      this.initialLoad = false;
     })
   },
   methods: {
@@ -41,7 +47,7 @@ export default {
       let scrollHeight = window.scrollY
       let maxHeight = window.document.body.scrollHeight - window.document.documentElement.clientHeight
       
-      if (scrollHeight >= maxHeight - 200) {
+      if (scrollHeight >= maxHeight - 800) {
         await this.load()
       }
     },
@@ -64,7 +70,6 @@ export default {
 </script>
 
 <style lang="scss" scoped>
-
 .image-container {
   margin: auto;
   position: relative;

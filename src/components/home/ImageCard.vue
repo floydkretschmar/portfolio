@@ -60,6 +60,10 @@ export default {
   }
 }
 
+.v-overlay {
+  backdrop-filter: blur(20px);
+}
+
 .image {
   width: 100%;
   height: auto;
