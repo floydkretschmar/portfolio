@@ -1,11 +1,20 @@
-import Vue from "vue";
-import App from "./App.vue";
-import { VueMasonryPlugin } from "vue-masonry";
+/**
+ * main.js
+ *
+ * Bootstraps Vuetify and other plugins then mounts the App`
+ */
 
-Vue.config.productionTip = false;
+// Components
+import App from './App.vue'
 
-Vue.use(VueMasonryPlugin);
+// Composables
+import { createApp } from 'vue'
 
-new Vue({
-  render: (h) => h(App),
-}).$mount("#app");
+// Plugins
+import { registerPlugins } from '@/plugins'
+
+const app = createApp(App)
+
+registerPlugins(app)
+
+app.mount('#app')
