@@ -45,10 +45,10 @@ export default defineConfig({
     ],
   },
   server: {
-    port: 8080,
+    port: 3000,
   },
   build: {
     outDir: '../dist'
   },
-  base: "https://floydkretschmar.com/"
+  base: "./"
 })
