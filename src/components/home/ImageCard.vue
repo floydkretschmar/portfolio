@@ -1,6 +1,6 @@
 <template>
   <v-hover v-slot="{ isHovering, props }">
-    <v-card v-masonry-tile class="item" flat @click="onClick()" v-bind="props">
+    <v-card v-masonry-tile class="item" @click=""  flat v-bind="props">
       <img :src="image.thumbnail.url" class="align-end image" />
       <v-card-title class="text-h7 text-white d-flex flex-column image-info-container">
         <div class="image-info" :class="{ 'on-hover': isHovering }">
@@ -17,6 +17,12 @@
           </div>
         </div>
       </v-card-title>
+      <v-dialog v-model="dialog" activator="parent" width="auto">
+        <v-card>
+          <img class="modal-image" :src="image.picture.url" :alt="image.title" />
+            <span class="close-button" @click="dialog = false">&times;</span>
+        </v-card>
+      </v-dialog>
     </v-card>
   </v-hover>
 </template>
@@ -28,14 +34,9 @@ export default {
   data() {
     return {
       isExpanded: false,
+      dialog: false
     };
-  },
-  methods: {
-    onClick() {
-      this.isExpanded = !this.isExpanded;
-      this.$emit("imageSelected", this.image);
-    },
-  },
+  }
 };
 </script>
 
@@ -46,17 +47,17 @@ export default {
 }
 
 @media only screen and (min-width: 1600px) {
-.item {
-  margin-bottom: 20px;
-  width: 500px;
-}
+  .item {
+    margin-bottom: 20px;
+    width: 500px;
+  }
 }
 
 @media only screen and (min-width: 2500px) {
-.item {
-  margin-bottom: 20px;
-  width: 600px;
-}
+  .item {
+    margin-bottom: 20px;
+    width: 600px;
+  }
 }
 
 .image {
@@ -88,5 +89,28 @@ export default {
 
 .image-info-container {
   margin-top: -90px;
+}
+
+.modal-image {
+  max-width: 95vh;
+  max-height: 95vh;
+  height: auto;
+  width: auto;
+}
+
+.close-button {
+  position: absolute;
+  right: 0.5em;
+  top: 0;
+  color: #aaa;
+  font-size: 60px;
+  font-weight: bold;
+}
+
+.close-button:hover,
+.close-button:focus {
+  color: black;
+  text-decoration: none;
+  cursor: pointer;
 }
 </style>

@@ -10,7 +10,7 @@
       gutter="20"
     >
       <div class="row">
-          <image-card v-for="image in itemList" :key="image.id" :image="image" @imageSelected="imageSelected"/> 
+          <image-card v-for="image in itemList" :key="image.id" :image="image"/> 
       </div>
   </div>
 </template>
@@ -58,9 +58,6 @@ export default {
           this.endOfPage = true;
         }
       }
-    },
-    imageSelected(image) {
-      this.$emit("imageSelected", image);
     }
   },
 }
