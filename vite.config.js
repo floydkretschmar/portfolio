@@ -49,5 +49,6 @@ export default defineConfig({
   },
   build: {
     outDir: '../dist'
-  }
+  },
+  base: "https://floydkretschmar.com/"
 })

@@ -9,6 +9,7 @@
     "lint": "eslint . --fix --ignore-path .gitignore",
     "deploy": "sh deploy.sh"
   },
+  "homepage": "https://floydkretschmar.com/",
   "dependencies": {
     "@mdi/font": "7.0.96",
     "axios": "^1.5.1",
