@@ -132,6 +132,7 @@ export default {
     ImageCard,
   },
   created() {
+    this.isLoading = true;
     this.load().then(() => {
       window.addEventListener("scroll", this.handleScroll);
     });
