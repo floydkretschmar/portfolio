@@ -1,25 +1,66 @@
 <template>
-  <skeleton-container v-if="this.initialLoad"></skeleton-container>
-  <div v-else
-      v-masonry
-      class="image-container"
-      transition-duration="0"
-      item-selector=".item"
-      :origin-top="true"
-      :horizontal-order="false"
-      :fit-width="true"
-      gutter="20"
-    >
-      <div class="row">
-          <image-card v-for="image in itemList" :key="image.id" :image="image"/> 
-      </div>
+  <!-- <skeleton-container v-if="this.initialLoad"></skeleton-container> -->
+  <div v-masonry class="image-container" transition-duration="0" item-selector=".item" :origin-top="true"
+    :horizontal-order="false" :fit-width="true" gutter="20">
+    <div class="row">
+      <image-card v-for="image in itemList" :key="image.id" :image="image" />
+    </div>
+    <div v-if="this.isLoading">
+      <v-card v-masonry-tile class="item" @click="" flat>
+        <v-skeleton-loader type="image" height="700" v-masonry-tile></v-skeleton-loader>
+      </v-card>
+      <v-card v-masonry-tile class="item" @click="" flat>
+        <v-skeleton-loader type="image" height="200" v-masonry-tile></v-skeleton-loader>
+      </v-card>
+      <v-card v-masonry-tile class="item" @click="" flat>
+        <v-skeleton-loader type="image" height="600" v-masonry-tile></v-skeleton-loader>
+      </v-card>
+      <v-card v-masonry-tile class="item" @click="" flat>
+        <v-skeleton-loader type="image" height="440" v-masonry-tile></v-skeleton-loader>
+      </v-card>
+      <v-card v-masonry-tile class="item" @click="" flat>
+        <v-skeleton-loader type="image" height="200" v-masonry-tile></v-skeleton-loader>
+      </v-card>
+      <v-card v-masonry-tile class="item" @click="" flat>
+        <v-skeleton-loader type="image" height="500" v-masonry-tile></v-skeleton-loader>
+      </v-card>
+      <v-card v-masonry-tile class="item" @click="" flat>
+        <v-skeleton-loader type="image" height="800"></v-skeleton-loader>
+      </v-card>
+      <v-card v-masonry-tile class="item" @click="" flat>
+        <v-skeleton-loader type="image" height="50" v-masonry-tile></v-skeleton-loader>
+      </v-card>
+      <v-card v-masonry-tile class="item" @click="" flat>
+        <v-skeleton-loader type="image" height="500" v-masonry-tile></v-skeleton-loader>
+      </v-card>
+      <v-card v-masonry-tile class="item" @click="" flat>
+        <v-skeleton-loader type="image" height="300"></v-skeleton-loader>
+      </v-card>
+      <v-card v-masonry-tile class="item" @click="" flat>
+        <v-skeleton-loader type="image" height="500" v-masonry-tile></v-skeleton-loader>
+      </v-card>
+      <v-card v-masonry-tile class="item" @click="" flat>
+        <v-skeleton-loader type="image" height="300"></v-skeleton-loader>
+      </v-card>
+      <v-card v-masonry-tile class="item" @click="" flat>
+        <v-skeleton-loader type="image" height="700" v-masonry-tile></v-skeleton-loader>
+      </v-card>
+      <v-card v-masonry-tile class="item" @click="" flat>
+        <v-skeleton-loader type="image" height="200" v-masonry-tile></v-skeleton-loader>
+      </v-card>
+      <v-card v-masonry-tile class="item" @click="" flat>
+        <v-skeleton-loader type="image" height="500" v-masonry-tile></v-skeleton-loader>
+      </v-card>
+      <v-card v-masonry-tile class="item" @click="" flat>
+        <v-skeleton-loader type="image" height="300"></v-skeleton-loader>
+      </v-card>
+    </div>
   </div>
 </template>
 
 <script>
 import ApiService from "@/services/ApiService.ts";
 import ImageCard from "@/components/home/ImageCard.vue";
-import SkeletonContainer from "./SkeletonContainer.vue";
 
 const apiService = new ApiService();
 export default {
@@ -29,24 +70,21 @@ export default {
     pageCount: 20,
 
     endOfPage: false,
-    isLoading: false,
-    initialLoad: true
+    isLoading: false
   }),
   components: {
-    ImageCard,
-    SkeletonContainer
-},
+    ImageCard
+  },
   created() {
     this.load().then(() => {
       window.addEventListener('scroll', this.handleScroll);
-      this.initialLoad = false;
     })
   },
   methods: {
     async handleScroll() {
       let scrollHeight = window.scrollY
       let maxHeight = window.document.body.scrollHeight - window.document.documentElement.clientHeight
-      
+
       if (scrollHeight >= maxHeight - 800) {
         await this.load()
       }
@@ -62,6 +100,7 @@ export default {
         }
         catch (e) {
           this.endOfPage = true;
+          this.isLoading = false;
         }
       }
     }
@@ -73,5 +112,25 @@ export default {
 .image-container {
   margin: auto;
   position: relative;
+}
+
+
+.item {
+  width: 600;
+}
+
+.image-container {
+  margin: auto;
+  position: relative;
+}
+
+::v-deep(.v-skeleton-loader)>* {
+  height: 100%;
+  display: flex;
+  flex-direction: column;
+}
+
+::v-deep(.v-skeleton-loader .v-skeleton-loader__bone) {
+  flex-grow: 1;
 }
 </style>
