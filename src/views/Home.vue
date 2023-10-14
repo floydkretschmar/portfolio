@@ -12,8 +12,8 @@ import InfiniteScrollContainer from "@/components/home/InfiniteScrollContainer.v
 export default {
   name: "HomePage",
   components: {
-    InfiniteScrollContainer
-  }
+    InfiniteScrollContainer,
+  },
 };
 </script>
 

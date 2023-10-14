@@ -1,12 +1,18 @@
 <template>
   <div class="header-root">
-      <div class="menu">
-        <ul>
-          <li class="text-h5 font-weight-light"><router-link to="/">Home</router-link></li>
-          <li class="text-h5 font-weight-light"><router-link to="/about">About</router-link></li>
-        </ul>
-      </div>
-      <div class="text-h3 text-centered title font-weight-bold">Floyd Kretschmar</div>
+    <div class="menu">
+      <ul>
+        <li class="text-h5 font-weight-light">
+          <router-link to="/">Home</router-link>
+        </li>
+        <li class="text-h5 font-weight-light">
+          <router-link to="/about">About</router-link>
+        </li>
+      </ul>
+    </div>
+    <div class="text-h3 text-centered title font-weight-bold">
+      Floyd Kretschmar
+    </div>
   </div>
 </template>
 

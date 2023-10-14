@@ -7,8 +7,8 @@
 </template>
 
 <script setup>
-  import PageHeader from './PageHeader.vue'
-  import ContentHost from './ContentHost.vue'
+import PageHeader from "./PageHeader.vue";
+import ContentHost from "./ContentHost.vue";
 </script>
 
 <style>
