@@ -1,15 +1,12 @@
 <template>
   <div class="header-root">
-    <header class="header">
       <div class="menu">
         <ul>
-          <li><router-link to="/">Home</router-link></li>
-          <li><router-link to="/about">About</router-link></li>
-          <li><router-link to="/content">Contact</router-link></li>
+          <li class="text-h5 font-weight-light"><router-link to="/">Home</router-link></li>
+          <li class="text-h5 font-weight-light"><router-link to="/about">About</router-link></li>
         </ul>
       </div>
-      <h1 class="text-centered title">Floyd Kretschmar</h1>
-    </header>
+      <div class="text-h3 text-centered title font-weight-bold">Floyd Kretschmar</div>
   </div>
 </template>
 
@@ -29,17 +26,13 @@ export default {
 }
 
 .menu ul {
-  // margin:1em 0 0 0;
   padding: 0;
   margin: auto;
-  margin-top: 10px;
   text-align: center;
 }
 .menu li {
   width: 100%;
-  // padding:1em;
   padding-bottom: 0.5em;
-  // padding-right:0em;
   display: block;
   list-style: none;
   text-align: center;
@@ -57,8 +50,9 @@ export default {
 @media only screen and (min-width: 1024px) {
   .menu {
     float: right;
-    margin-right: 7%;
-    margin-left: 5em;
+    margin-right: 10em;
+    margin-left: 10em;
+    margin-top: 14px;
   }
   .menu li {
     display: inline;

@@ -85,8 +85,8 @@ export default {
       let scrollHeight = window.scrollY
       let maxHeight = window.document.body.scrollHeight - window.document.documentElement.clientHeight
 
-      if (scrollHeight >= maxHeight - 800) {
-        await this.load()
+      if (scrollHeight >= maxHeight - 200) {
+        await this.load().then(() => this.$redrawVueMasonry())
       }
     },
     async load() {
