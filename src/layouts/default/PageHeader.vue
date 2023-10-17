@@ -53,10 +53,10 @@ export default {
   text-align: center;
 }
 
-@media only screen and (min-width: 1024px) {
+@media only screen and (min-width: 1100px) {
   .menu {
     float: right;
-    margin-right: 10em;
+    margin-right: 15em;
     margin-left: 10em;
     margin-top: 14px;
   }

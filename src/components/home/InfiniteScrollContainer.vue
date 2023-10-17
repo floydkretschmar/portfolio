@@ -24,7 +24,7 @@
       <v-card v-masonry-tile class="item" @click="" flat>
         <v-skeleton-loader
           type="image"
-          height="200"
+          height="400"
           v-masonry-tile
         ></v-skeleton-loader>
       </v-card>
@@ -45,7 +45,7 @@
       <v-card v-masonry-tile class="item" @click="" flat>
         <v-skeleton-loader
           type="image"
-          height="200"
+          height="300"
           v-masonry-tile
         ></v-skeleton-loader>
       </v-card>
@@ -62,7 +62,7 @@
       <v-card v-masonry-tile class="item" @click="" flat>
         <v-skeleton-loader
           type="image"
-          height="50"
+          height="350"
           v-masonry-tile
         ></v-skeleton-loader>
       </v-card>
@@ -144,7 +144,7 @@ export default {
         window.document.body.scrollHeight -
         window.document.documentElement.clientHeight;
 
-      if (scrollHeight >= maxHeight - 200) {
+      if (scrollHeight >= maxHeight - 600) {
         if (!this.endOfPage && !this.isLoading) {
           this.isLoading = true;
           await this.load();
@@ -171,15 +171,6 @@ export default {
 </script>
 
 <style lang="scss" scoped>
-.image-container {
-  margin: auto;
-  position: relative;
-}
-
-.item {
-  width: 600;
-}
-
 .image-container {
   margin: auto;
   position: relative;

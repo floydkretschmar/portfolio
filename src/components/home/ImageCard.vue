@@ -52,17 +52,17 @@ export default {
   width: 300px;
 }
 
-@media only screen and (min-width: 1600px) {
+@media only screen and (min-width: 1500px) {
   .item {
     margin-bottom: 20px;
-    width: 500px;
+    width: 400px;
   }
 }
 
-@media only screen and (min-width: 2500px) {
+@media only screen and (min-width: 2000px) {
   .item {
     margin-bottom: 20px;
-    width: 600px;
+    width: 500px;
   }
 }
 
