@@ -123,9 +123,9 @@ export default {
   data: () => ({
     itemList: [],
     pageNumber: 1,
+    finalPageNumber: -1,
     pageCount: 20,
 
-    endOfPage: false,
     isLoading: false,
   }),
   components: {
@@ -144,8 +144,8 @@ export default {
         window.document.body.scrollHeight -
         window.document.documentElement.clientHeight;
 
-      if (scrollHeight >= maxHeight - 600) {
-        if (!this.endOfPage && !this.isLoading) {
+      if (scrollHeight >= maxHeight - 200) {
+        if (this.pageNumber <= this.finalPageNumber && !this.isLoading) {
           this.isLoading = true;
           await this.load();
           this.$redrawVueMasonry();
@@ -153,18 +153,15 @@ export default {
       }
     },
     async load() {
-      try {
-        const res = await apiService.fetchItemsAPI(
-          this.pageNumber,
-          this.pageCount,
-        );
-        this.itemList.push(...res.data.data);
-        this.pageNumber++;
-        this.isLoading = false;
-      } catch (e) {
-        this.endOfPage = true;
-        this.isLoading = false;
-      }
+      const res = await apiService.fetchItemsAPI(
+        this.pageNumber,
+        this.pageCount,
+      );
+
+      this.itemList.push(...res.data.data);
+      this.pageNumber++;
+      this.finalPageNumber = res.data.totalPages;
+      this.isLoading = false;
     },
   },
 };
