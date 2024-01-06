@@ -1,17 +1,17 @@
 <template>
   <div class="header-root">
+    <div class="text-centered title font-weight-bold">
+      Floyd Kretschmar
+    </div>
     <div class="menu">
       <ul>
-        <li class="text-h5 font-weight-light">
+        <li>
           <router-link to="/">Home</router-link>
         </li>
-        <li class="text-h5 font-weight-light">
+        <li>
           <router-link to="/about">About</router-link>
         </li>
       </ul>
-    </div>
-    <div class="text-h3 text-centered title font-weight-bold">
-      Floyd Kretschmar
     </div>
   </div>
 </template>
@@ -24,49 +24,68 @@ export default {
 
 <style lang="scss">
 .header-root {
-  padding-top: 1.3em;
-  padding-bottom: 1em;
-  padding-left: 2em;
-  padding-right: 2em;
+  padding: 3rem 2rem;
   margin-bottom: 0;
+  display: flex;
+  justify-content: center;
+  flex-wrap: wrap;
+  align-items: baseline;
+}
+.about {
+  font-size: 1.6rem;
+  font-weight: 300;
+}
+
+.about a {
+  color: #777;
+  text-decoration: none;
 }
 
 .menu ul {
-  padding: 0;
+  padding-top: 0.5em;
+  width: 100%;
   margin: auto;
   text-align: center;
 }
 .menu li {
-  width: 100%;
-  padding-bottom: 0.5em;
-  display: block;
+  padding: 0 1em;
+  font-size: 1.25rem;
+  display: inline;
   list-style: none;
   text-align: center;
-  font-size: larger;
 }
 .menu li a {
   color: #777;
   text-decoration: none;
-  text-transform: uppercase;
 }
 .title {
+  width: 100%;
   text-align: center;
+  font-size: 2rem;
+}
+
+.title a {
+  color: #111111;
+  text-decoration: none;
 }
 
 @media only screen and (min-width: 1100px) {
-  .menu {
-    float: right;
-    margin-right: 15em;
-    margin-left: 10em;
-    margin-top: 14px;
+  .header-root {
+    padding: 3rem 2rem;
   }
   .menu li {
-    display: inline;
-    padding-left: 2em;
+    padding: 0 1em;
+    font-size: 1.6rem;
+    font-weight: 300;
   }
   .title {
-    margin: auto;
+    font-size: 2.75rem;
+    width: auto;
     text-align: right;
+  }
+  .menu ul {
+    margin-left: 2rem;
+    padding-top: 1em;
   }
 }
 </style>

@@ -10,10 +10,10 @@
             {{ image.title }}
           </p>
           <div>
-            <p class="text-caption font-weight-light" style="float: left">
+            <p class="text-caption" style="float: left">
               {{ image.dateWhenTaken }}
             </p>
-            <p class="text-caption font-weight-light" style="float: right">
+            <p class="text-caption" style="float: right">
               Views: {{ image.views }}
             </p>
           </div>
@@ -47,6 +47,10 @@ export default {
 </script>
 
 <style lang="scss">
+.v-card-title, .text-caption {
+  font-weight: 100!important;
+}
+
 .item {
   margin-bottom: 20px;
   width: 300px;
@@ -55,7 +59,7 @@ export default {
 @media only screen and (min-width: 1500px) {
   .item {
     margin-bottom: 20px;
-    width: 400px;
+    width: 450px;
   }
 }
 
