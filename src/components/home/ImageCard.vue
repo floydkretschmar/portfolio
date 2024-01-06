@@ -59,7 +59,7 @@ export default {
 @media only screen and (min-width: 1500px) {
   .item {
     margin-bottom: 20px;
-    width: 450px;
+    width: 400px;
   }
 }
 
