@@ -6,7 +6,7 @@
     transition-duration="0"
     item-selector=".item"
     :origin-top="true"
-    :horizontal-order="false"
+    :horizontal-order="true"
     :fit-width="true"
     gutter="20"
   >

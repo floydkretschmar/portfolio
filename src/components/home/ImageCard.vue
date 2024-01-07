@@ -53,21 +53,7 @@ export default {
 
 .item {
   margin-bottom: 20px;
-  width: 300px;
-}
-
-@media only screen and (min-width: 1500px) {
-  .item {
-    margin-bottom: 20px;
-    width: 400px;
-  }
-}
-
-@media only screen and (min-width: 2000px) {
-  .item {
-    margin-bottom: 20px;
-    width: 500px;
-  }
+  width: 350px;
 }
 
 .v-overlay {
