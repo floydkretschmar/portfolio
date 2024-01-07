@@ -62,11 +62,7 @@ export default {
   width: 100%;
   text-align: center;
   font-size: 2rem;
-}
-
-.title a {
-  color: #111111;
-  text-decoration: none;
+  color: #222;
 }
 
 @media only screen and (min-width: 1100px) {

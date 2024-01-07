@@ -6,8 +6,8 @@
         src="https://live.staticflickr.com/65535/53257854551_7310042b82_k.jpg"
       />
       <div class="text-container">
-        <div class="header text-h2">Welcome.</div>
-        <div class="description text-h6 font-weight-light">
+        <div class="header">Welcome.</div>
+        <div class="description font-weight-light">
           I'm Floyd, a software developer and hobbyist photographer from
           Regensburg, Germany. I created this website as a technical challenge
           for myself, as well as a way to put my pictures on display. I hope you
@@ -51,6 +51,16 @@
 
 .header {
   margin-bottom: 20px;
+  font-size: 3rem;
+  font-weight: 500;
+  color: #222;
+}
+
+.description {
+  font-size: 1.25rem;
+  line-height: 2rem;
+  font-weight: 300;
+  color: #777;
 }
 
 @media only screen and (min-width: 1100px) {
