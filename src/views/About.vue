@@ -1,5 +1,5 @@
 <template>
-  <v-container class="d-flex justify-center">
+  <div class="d-flex justify-center">
     <div class="about-page">
       <img
         class="me"
@@ -15,38 +15,32 @@
         </div>
       </div>
     </div>
-  </v-container>
+  </div>
 </template>
 
 <script setup></script>
 
 <style lang="scss">
-.v-container {
-  justify-content: center;
-  padding: 0 !important;
-  width: 65% !important;
-}
 
 .about-page {
   display: flex;
+  justify-content: center;
   flex-wrap: wrap;
   max-width: 90vw;
 }
 
 .me {
-  display: flex;
-  align-self: center;
+  min-height: 400px;
   border-radius: 4px;
   max-width: 85vw;
   max-height: calc(100vh - 162px - 2rem);
 }
 
 .text-container {
-  align-self: flex-end;
-  width: 100%;
   max-width: 85vw;
-  margin-top: 2em;
-  margin-bottom: 10em;
+  margin-top: 2rem;
+  margin-left: 0px;
+  margin-bottom: 2rem;
 }
 
 .header {
@@ -64,26 +58,19 @@
 }
 
 @media only screen and (min-width: 1100px) {
-  .v-container {
-    justify-content: left !important;
-    padding: 0 !important;
-    width: 75% !important;
-  }
-
-  .about-page {
-    width: 1400px;
-    flex-direction: row !important;
-    flex-wrap: nowrap !important;
-  }
   .text-container {
-    margin-top: 0;
+    margin-top: 0px;
+    max-width: 500px;
+    margin-left: 3rem;
   }
-
-  .me {
-    margin-top: 0 !important;
-    margin-right: 4em;
-    height: auto;
-    width: auto;
+}
+@media only screen and (min-height: 400px) and (min-width: 1100px)  {
+  .text-container {
+    margin-bottom: 8em;
+    align-items: end;
+  }
+  .about-page {
+    align-items: end;
   }
 }
 </style>
