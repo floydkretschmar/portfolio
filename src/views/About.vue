@@ -38,7 +38,7 @@
   align-self: center;
   border-radius: 4px;
   max-width: 85vw;
-  max-height: calc(100vh - 102.8px);
+  max-height: calc(100vh - 162px - 2rem);
 }
 
 .text-container {
