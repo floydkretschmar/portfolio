@@ -1,36 +1,47 @@
 <template>
-  <v-hover v-slot="{ isHovering, props }">
-    <v-card v-masonry-tile class="item" @click="" flat v-bind="props">
-      <img :src="image.thumbnail.url" class="align-end image" />
-      <v-card-title
-        class="text-h7 text-white d-flex flex-column image-info-container"
-      >
-        <div class="image-info" :class="{ 'on-hover': isHovering }">
-          <p>
-            {{ image.title }}
-          </p>
-          <div>
-            <p class="text-caption" style="float: left">
-              {{ image.dateWhenTaken }}
-            </p>
-            <p class="text-caption" style="float: right">
-              Views: {{ image.views }}
-            </p>
-          </div>
-        </div>
-      </v-card-title>
-      <v-dialog v-model="dialog" activator="parent" width="auto">
-        <v-card>
-          <img
-            class="modal-image"
-            :src="image.picture.url"
-            :alt="image.title"
-          />
-          <span class="close-button" @click="dialog = false">&times;</span>
-        </v-card>
-      </v-dialog>
+  <div v-if="!this.loaded">
+    <v-card v-masonry-tile class="item" @click="" flat>
+      <v-skeleton-loader
+        type="image"
+        :height="image.thumbnail.height"
+        v-masonry-tile
+      ></v-skeleton-loader>
     </v-card>
-  </v-hover>
+  </div>
+  <div>
+    <v-hover v-slot="{ isHovering, props }">
+      <v-card v-masonry-tile class="item" @click="" flat v-bind="props">
+        <img @load="loaded = true" :src="image.thumbnail.url" class="align-end image" />
+        <v-card-title
+          class="text-h7 text-white d-flex flex-column image-info-container"
+        >
+          <div class="image-info" :class="{ 'on-hover': isHovering }">
+            <p>
+              {{ image.title }}
+            </p>
+            <div>
+              <p class="text-caption" style="float: left">
+                {{ image.dateWhenTaken }}
+              </p>
+              <p class="text-caption" style="float: right">
+                Views: {{ image.views }}
+              </p>
+            </div>
+          </div>
+        </v-card-title>
+        <v-dialog v-model="dialog" activator="parent" width="auto">
+          <v-card>
+            <img
+              class="modal-image"
+              :src="image.picture.url"
+              :alt="image.title"
+            />
+            <span class="close-button" @click="dialog = false">&times;</span>
+          </v-card>
+        </v-dialog>
+      </v-card>
+    </v-hover>
+  </div>
 </template>
 
 <script>
@@ -41,6 +52,7 @@ export default {
     return {
       isExpanded: false,
       dialog: false,
+      loaded: false
     };
   },
 };
