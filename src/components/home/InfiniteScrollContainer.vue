@@ -13,104 +13,6 @@
     <div class="row">
       <image-card v-for="image in itemList" :key="image.id" :image="image" />
     </div>
-    <div v-if="this.isLoading">
-      <v-card v-masonry-tile class="item" @click="" flat>
-        <v-skeleton-loader
-          type="image"
-          height="700"
-          v-masonry-tile
-        ></v-skeleton-loader>
-      </v-card>
-      <v-card v-masonry-tile class="item" @click="" flat>
-        <v-skeleton-loader
-          type="image"
-          height="400"
-          v-masonry-tile
-        ></v-skeleton-loader>
-      </v-card>
-      <v-card v-masonry-tile class="item" @click="" flat>
-        <v-skeleton-loader
-          type="image"
-          height="600"
-          v-masonry-tile
-        ></v-skeleton-loader>
-      </v-card>
-      <v-card v-masonry-tile class="item" @click="" flat>
-        <v-skeleton-loader
-          type="image"
-          height="440"
-          v-masonry-tile
-        ></v-skeleton-loader>
-      </v-card>
-      <v-card v-masonry-tile class="item" @click="" flat>
-        <v-skeleton-loader
-          type="image"
-          height="300"
-          v-masonry-tile
-        ></v-skeleton-loader>
-      </v-card>
-      <v-card v-masonry-tile class="item" @click="" flat>
-        <v-skeleton-loader
-          type="image"
-          height="500"
-          v-masonry-tile
-        ></v-skeleton-loader>
-      </v-card>
-      <v-card v-masonry-tile class="item" @click="" flat>
-        <v-skeleton-loader type="image" height="800"></v-skeleton-loader>
-      </v-card>
-      <v-card v-masonry-tile class="item" @click="" flat>
-        <v-skeleton-loader
-          type="image"
-          height="350"
-          v-masonry-tile
-        ></v-skeleton-loader>
-      </v-card>
-      <v-card v-masonry-tile class="item" @click="" flat>
-        <v-skeleton-loader
-          type="image"
-          height="500"
-          v-masonry-tile
-        ></v-skeleton-loader>
-      </v-card>
-      <v-card v-masonry-tile class="item" @click="" flat>
-        <v-skeleton-loader type="image" height="300"></v-skeleton-loader>
-      </v-card>
-      <v-card v-masonry-tile class="item" @click="" flat>
-        <v-skeleton-loader
-          type="image"
-          height="500"
-          v-masonry-tile
-        ></v-skeleton-loader>
-      </v-card>
-      <v-card v-masonry-tile class="item" @click="" flat>
-        <v-skeleton-loader type="image" height="300"></v-skeleton-loader>
-      </v-card>
-      <v-card v-masonry-tile class="item" @click="" flat>
-        <v-skeleton-loader
-          type="image"
-          height="700"
-          v-masonry-tile
-        ></v-skeleton-loader>
-      </v-card>
-      <v-card v-masonry-tile class="item" @click="" flat>
-        <v-skeleton-loader
-          type="image"
-          height="200"
-          v-masonry-tile
-        ></v-skeleton-loader>
-      </v-card>
-      <v-card v-masonry-tile class="item" @click="" flat>
-        <v-skeleton-loader
-          type="image"
-          height="500"
-          v-masonry-tile
-        ></v-skeleton-loader>
-      </v-card>
-      <v-card v-masonry-tile class="item" @click="" flat>
-        <v-skeleton-loader type="image" height="300"></v-skeleton-loader>
-      </v-card>
-    </div>
   </div>
 </template>
 
@@ -136,6 +38,7 @@ export default {
     this.load().then(() => {
       window.addEventListener("scroll", this.handleScroll);
     });
+    this.addSkeletonImagesToList()
   },
   methods: {
     async handleScroll() {
@@ -144,12 +47,12 @@ export default {
         window.document.body.scrollHeight -
         window.document.documentElement.clientHeight;
 
-      if (scrollHeight >= maxHeight - 200) {
-        if (this.pageNumber <= this.finalPageNumber && !this.isLoading) {
-          this.isLoading = true;
-          await this.load();
+      if (scrollHeight >= maxHeight - 200 && this.pageNumber < this.finalPageNumber && !this.isLoading) {
+        this.isLoading = true;
+        this.load().then(() => {
           this.$redrawVueMasonry();
-        }
+        });
+        this.addSkeletonImagesToList()
       }
     },
     async load() {
@@ -158,11 +61,29 @@ export default {
         this.pageCount,
       );
 
-      this.itemList.push(...res.data.data);
+      const startIndex = (this.pageNumber - 1) * this.pageCount;
+      const endIndex = this.pageNumber * this.pageCount;
+      for (let i = startIndex; i < endIndex; i++) {
+        this.itemList[i] = res.data.data[i - startIndex]
+      }
       this.pageNumber++;
       this.finalPageNumber = res.data.totalPages;
       this.isLoading = false;
     },
+    generateRandomInteger(min, max) {
+      return Math.floor(min + Math.random()*(max - min + 1))
+    },
+    addSkeletonImagesToList() {
+      for (let i = 0; i < this.pageCount; i++) {
+        this.itemList.push({
+          loaded: false,
+          thumbnail: {
+            // Do some random height between 200 and 700 for the image skeleton loader
+            height: 400 + this.generateRandomInteger(-200, 200)
+          }
+        });
+      }
+    }
   },
 };
 </script>

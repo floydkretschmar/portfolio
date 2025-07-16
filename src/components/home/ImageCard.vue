@@ -10,7 +10,7 @@
   </div>
   <div>
     <v-hover v-slot="{ isHovering, props }">
-      <v-card v-masonry-tile class="item" @click="" flat v-bind="props">
+      <v-card :width="loaded ? '' : 0" v-masonry-tile class="item" @click="" flat v-bind="props">
         <img @load="loaded = true" :src="image.thumbnail.url" class="align-end image" />
         <v-card-title
           class="text-h7 text-white d-flex flex-column image-info-container"
