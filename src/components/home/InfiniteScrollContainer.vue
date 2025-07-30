@@ -38,7 +38,7 @@ export default {
     this.load().then(() => {
       window.addEventListener("scroll", this.handleScroll);
     });
-    this.addSkeletonImagesToList()
+    this.addSkeletonImagesToList();
   },
   methods: {
     async handleScroll() {
@@ -47,12 +47,16 @@ export default {
         window.document.body.scrollHeight -
         window.document.documentElement.clientHeight;
 
-      if (scrollHeight >= maxHeight - 200 && this.pageNumber <= this.finalPageNumber && !this.isLoading) {
+      if (
+        scrollHeight >= maxHeight - 200 &&
+        this.pageNumber <= this.finalPageNumber &&
+        !this.isLoading
+      ) {
         this.isLoading = true;
         this.load().then(() => {
           this.$redrawVueMasonry();
         });
-        this.addSkeletonImagesToList()
+        this.addSkeletonImagesToList();
       }
     },
     async load() {
@@ -63,13 +67,16 @@ export default {
 
       const startIndex = (this.pageNumber - 1) * this.pageCount;
       const endIndex = this.pageNumber * this.pageCount;
-      for (let currentIndex = startIndex; currentIndex < endIndex; currentIndex++) {
+      for (
+        let currentIndex = startIndex;
+        currentIndex < endIndex;
+        currentIndex++
+      ) {
         const currentRelativeIndex = currentIndex - startIndex;
 
         if (currentRelativeIndex < res.data.data.length) {
           this.itemList[currentIndex] = res.data.data[currentRelativeIndex];
-        }
-        else {
+        } else {
           this.itemList = this.itemList.splice(0, currentIndex - 1);
           break;
         }
@@ -79,7 +86,7 @@ export default {
       this.isLoading = false;
     },
     generateRandomInteger(min, max) {
-      return Math.floor(min + Math.random()*(max - min + 1))
+      return Math.floor(min + Math.random() * (max - min + 1));
     },
     addSkeletonImagesToList() {
       for (let i = 0; i < this.pageCount; i++) {
@@ -87,11 +94,11 @@ export default {
           loaded: false,
           thumbnail: {
             // Do some random height between 200 and 700 for the image skeleton loader
-            height: 400 + this.generateRandomInteger(-200, 200)
-          }
+            height: 400 + this.generateRandomInteger(-200, 200),
+          },
         });
       }
-    }
+    },
   },
 };
 </script>

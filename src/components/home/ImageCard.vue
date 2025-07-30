@@ -10,8 +10,19 @@
   </div>
   <div>
     <v-hover v-slot="{ isHovering, props }">
-      <v-card :width="loaded ? '' : 0" v-masonry-tile class="item" @click="" flat v-bind="props">
-        <img @load="loaded = true" :src="image.thumbnail.url" class="align-end image" />
+      <v-card
+        :width="loaded ? '' : 0"
+        v-masonry-tile
+        class="item"
+        @click=""
+        flat
+        v-bind="props"
+      >
+        <img
+          @load="loaded = true"
+          :src="image.thumbnail.url"
+          class="align-end image"
+        />
         <v-card-title
           class="text-h7 text-white d-flex flex-column image-info-container"
         >
@@ -52,15 +63,16 @@ export default {
     return {
       isExpanded: false,
       dialog: false,
-      loaded: false
+      loaded: false,
     };
   },
 };
 </script>
 
 <style lang="scss">
-.v-card-title, .text-caption {
-  font-weight: 100!important;
+.v-card-title,
+.text-caption {
+  font-weight: 100 !important;
 }
 
 .item {

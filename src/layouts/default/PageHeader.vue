@@ -1,8 +1,6 @@
 <template>
   <div class="header-root">
-    <div class="text-centered title font-weight-bold">
-      Floyd Kretschmar
-    </div>
+    <div class="text-centered title font-weight-bold">Floyd Kretschmar</div>
     <div class="menu">
       <ul>
         <li>

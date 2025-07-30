@@ -21,7 +21,6 @@
 <script setup></script>
 
 <style lang="scss">
-
 .about-page {
   display: flex;
   justify-content: center;
@@ -64,7 +63,7 @@
     margin-left: 3rem;
   }
 }
-@media only screen and (min-height: 400px) and (min-width: 1100px)  {
+@media only screen and (min-height: 400px) and (min-width: 1100px) {
   .text-container {
     margin-bottom: 8em;
     align-items: end;
