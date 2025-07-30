@@ -47,7 +47,7 @@ export default {
         window.document.body.scrollHeight -
         window.document.documentElement.clientHeight;
 
-      if (scrollHeight >= maxHeight - 200 && this.pageNumber < this.finalPageNumber && !this.isLoading) {
+      if (scrollHeight >= maxHeight - 200 && this.pageNumber <= this.finalPageNumber && !this.isLoading) {
         this.isLoading = true;
         this.load().then(() => {
           this.$redrawVueMasonry();
@@ -63,8 +63,16 @@ export default {
 
       const startIndex = (this.pageNumber - 1) * this.pageCount;
       const endIndex = this.pageNumber * this.pageCount;
-      for (let i = startIndex; i < endIndex; i++) {
-        this.itemList[i] = res.data.data[i - startIndex]
+      for (let currentIndex = startIndex; currentIndex < endIndex; currentIndex++) {
+        const currentRelativeIndex = currentIndex - startIndex;
+
+        if (currentRelativeIndex < res.data.data.length) {
+          this.itemList[currentIndex] = res.data.data[currentRelativeIndex];
+        }
+        else {
+          this.itemList = this.itemList.splice(0, currentIndex - 1);
+          break;
+        }
       }
       this.pageNumber++;
       this.finalPageNumber = res.data.totalPages;
