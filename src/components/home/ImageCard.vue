@@ -45,6 +45,7 @@
             <img
               class="modal-image"
               :src="image.picture.url"
+              @error="$event.target.src = image.picture.fallback"
               :alt="image.title"
             />
             <span class="close-button" @click="dialog = false">&times;</span>

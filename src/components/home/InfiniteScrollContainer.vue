@@ -19,6 +19,7 @@
 <script>
 import ApiService from "@/services/ApiService.ts";
 import ImageCard from "@/components/home/ImageCard.vue";
+import config from "../../../config.js";
 
 const apiService = new ApiService();
 export default {
@@ -27,20 +28,50 @@ export default {
     pageNumber: 1,
     finalPageNumber: -1,
     pageCount: 20,
-
     isLoading: false,
   }),
   components: {
     ImageCard,
   },
   created() {
-    this.isLoading = true;
-    this.load().then(() => {
-      window.addEventListener("scroll", this.handleScroll);
-    });
     this.addSkeletonImagesToList();
+    const data = this.getCachedData();
+
+    // cache was empty or freshly invalidated -> treat as new page load
+    if (data.finalPageNumber === -1) {
+      this.isLoading = true;
+      this.load().then(() => {
+        window.addEventListener("scroll", this.handleScroll);
+      });
+    }
+    // restore cached data and add window handler
+    else {
+      this.finalPageNumber = data.finalPageNumber;
+      this.pageNumber = data.pageNumber;
+      this.pageCount = data.pageCount;
+      this.itemList = data.itemList;
+      window.addEventListener("scroll", this.handleScroll);
+    }
   },
   methods: {
+    getCachedData() {
+      const homeCache = sessionStorage.getItem("home-data");
+      if (homeCache) {
+        const cache = JSON.parse(homeCache);
+        if (
+          Date.now().valueOf() <
+          cache.timestamp.valueOf() + config.cache_ttl_ms >
+          0
+        ) {
+          // cache is still valid so return cached data
+          return cache.data;
+        } else {
+          // cache has timed out so remove from storage
+          sessionStorage.removeItem("home-data");
+        }
+      }
+      return this.$data;
+    },
     async handleScroll() {
       let scrollHeight = window.scrollY;
       let maxHeight =
@@ -84,6 +115,10 @@ export default {
       this.pageNumber++;
       this.finalPageNumber = res.data.totalPages;
       this.isLoading = false;
+      sessionStorage.setItem(
+        "home-data",
+        JSON.stringify({ data: this.$data, timestamp: Date.now() }),
+      );
     },
     generateRandomInteger(min, max) {
       return Math.floor(min + Math.random() * (max - min + 1));
