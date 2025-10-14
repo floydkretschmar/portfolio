@@ -11,7 +11,7 @@
   "type": "module",
   "dependencies": {
     "@mdi/font": "7.0.96",
-    "axios": "^1.10.0",
+    "axios": "^1.12.0",
     "core-js": "^3.44.0",
     "roboto-fontface": "^0.10.0",
     "vue": "^3.2.0",
