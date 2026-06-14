@@ -81,6 +81,27 @@ test("run.sh check reports fixable lint while format fixes it", async () => {
   }
 });
 
+test("package validation covers repository scripts", async () => {
+  const fixture = await createPackageScriptFixture();
+  const target = join(fixture, "scripts/validation-target.js");
+  const formatIssue = "const checked=true\nconsole.log(checked)\n";
+  const fixed = "const checked = true;\nconsole.log(checked);\n";
+
+  try {
+    writeFileSync(target, formatIssue);
+
+    const checked = run(fixture, "check");
+    assert.notEqual(checked.status, 0);
+    assert.match(checked.stdout + checked.stderr, /validation-target\.js/);
+    assert.equal(readFileSync(target, "utf8"), formatIssue);
+
+    assert.equal(run(fixture, "format").status, 0);
+    assert.equal(readFileSync(target, "utf8"), fixed);
+  } finally {
+    rmSync(fixture, { force: true, recursive: true });
+  }
+});
+
 test("behavior-unit coverage gate rejects low behavior coverage despite e2e data", async () => {
   const fixture = mkdtempSync(join(tmpdir(), "portfolio-coverage-"));
 
@@ -147,6 +168,64 @@ export default {
   }
 });
 
+test("repository policy checker enforces reproducible runtime policy", async () => {
+  const fixture = mkdtempSync(join(tmpdir(), "portfolio-policy-"));
+
+  try {
+    await writeFile(join(fixture, ".node-version"), "24.16.0\n");
+    await writeFile(
+      join(fixture, ".npmrc"),
+      "engine-strict=true\nsave-exact=true\nmin-release-age=7\n",
+    );
+
+    const validPackage = {
+      dependencies: {
+        vue: "3.5.38",
+      },
+      devDependencies: {
+        vite: "7.1.11",
+      },
+      engines: {
+        node: "24.16.0",
+      },
+      packageManager: "npm@11.13.0",
+    };
+
+    await writeFile(
+      join(fixture, "package.json"),
+      `${JSON.stringify(validPackage, null, 2)}\n`,
+    );
+    await writeFile(
+      join(fixture, "package-lock.json"),
+      `${JSON.stringify({ packages: { "": validPackage } }, null, 2)}\n`,
+    );
+    assert.equal(runPolicyChecker(fixture).status, 0);
+
+    for (const invalidPackage of [
+      { ...validPackage, packageManager: undefined },
+      { ...validPackage, dependencies: { vue: "^3.5.38" } },
+    ]) {
+      await writeFile(
+        join(fixture, "package.json"),
+        `${JSON.stringify(invalidPackage, null, 2)}\n`,
+      );
+      assert.notEqual(runPolicyChecker(fixture).status, 0);
+    }
+
+    await writeFile(
+      join(fixture, "package.json"),
+      `${JSON.stringify(validPackage, null, 2)}\n`,
+    );
+    await writeFile(
+      join(fixture, ".npmrc"),
+      "engine-strict=true\nsave-exact=true\n",
+    );
+    assert.notEqual(runPolicyChecker(fixture).status, 0);
+  } finally {
+    rmSync(fixture, { force: true, recursive: true });
+  }
+});
+
 async function createFixture() {
   const fixture = mkdtempSync(join(tmpdir(), "portfolio-run-"));
   await cp(new URL("../run.sh", import.meta.url), join(fixture, "run.sh"));
@@ -196,6 +275,18 @@ async function createPackageScriptFixture() {
   const packageJson = JSON.parse(
     await readFile(new URL("../package.json", import.meta.url), "utf8"),
   );
+  const fixturePackage = {
+    engines: {
+      node: "24.16.0",
+    },
+    packageManager: "npm@11.13.0",
+    private: true,
+    scripts: {
+      check: packageJson.scripts.check,
+      format: packageJson.scripts.format,
+    },
+    type: "module",
+  };
 
   await cp(new URL("../run.sh", import.meta.url), join(fixture, "run.sh"));
   await cp(
@@ -206,14 +297,27 @@ async function createPackageScriptFixture() {
     join(root.pathname, "node_modules"),
     join(fixture, "node_modules"),
   );
+  await mkdir(join(fixture, "scripts"));
   await mkdir(join(fixture, "src"));
   await mkdir(join(fixture, "tasks"));
   await mkdir(join(fixture, "tests"));
+  await cp(
+    new URL("../scripts/check-repository-policy.js", import.meta.url),
+    join(fixture, "scripts/check-repository-policy.js"),
+  );
   await writeFile(join(fixture, ".gitignore"), "node_modules\n");
+  await writeFile(join(fixture, ".node-version"), "24.16.0\n");
+  await writeFile(
+    join(fixture, ".npmrc"),
+    "engine-strict=true\nsave-exact=true\nmin-release-age=7\n",
+  );
   await writeFile(join(fixture, "README.md"), "# Fixture\n");
   await writeFile(join(fixture, "config.js"), "export default {};\n");
   await writeFile(join(fixture, "index.html"), '<div id="app"></div>\n');
-  await writeFile(join(fixture, "package-lock.json"), "{}\n");
+  await writeFile(
+    join(fixture, "src/clean.js"),
+    "const sourceOk = true;\nconsole.log(sourceOk);\n",
+  );
   await writeFile(join(fixture, "tasks/todo.md"), "# Fixture\n");
   await writeFile(
     join(fixture, "tests/clean.js"),
@@ -225,14 +329,17 @@ async function createPackageScriptFixture() {
   );
   await writeFile(
     join(fixture, "package.json"),
+    `${JSON.stringify(fixturePackage, null, 2)}\n`,
+  );
+  await writeFile(
+    join(fixture, "package-lock.json"),
     `${JSON.stringify(
       {
-        private: true,
-        scripts: {
-          check: packageJson.scripts.check,
-          format: packageJson.scripts.format,
+        packages: {
+          "": {
+            engines: fixturePackage.engines,
+          },
         },
-        type: "module",
       },
       null,
       2,
@@ -248,4 +355,12 @@ function run(cwd, command) {
 
 function readLog(cwd) {
   return readFileSync(join(cwd, "commands.log"), "utf8").trim().split("\n");
+}
+
+function runPolicyChecker(cwd) {
+  return spawnSync(
+    "node",
+    [join(root.pathname, "scripts/check-repository-policy.js")],
+    { cwd, encoding: "utf8" },
+  );
 }

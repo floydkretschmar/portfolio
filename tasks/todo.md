@@ -25,7 +25,7 @@
 ## Phases
 
 - [x] Phase 1: Truthful Local Validation
-- [ ] Phase 2: Reproducible Runtime Baseline
+- [x] Phase 2: Reproducible Runtime Baseline
 - [ ] Phase 3: CI, Dependabot, And Deployment Gates
 - [ ] Phase 4: Route And Production Preview Parity
 - [ ] Phase 5: First Gallery Load Characterization
@@ -49,9 +49,12 @@
 - [x] Phase 1 review addendum: truthful local validation contract
   - RED command + failure: `rtk node --test tests/run-contract.test.js` failed because `run.sh format` left the auto-fixable ESLint `no-regex-spaces` issue unchanged after `run.sh check` reported it without mutating the fixture.
   - GREEN command + pass: `rtk node --test tests/run-contract.test.js` passed after `format` ran ESLint `--fix` over the same target set as `check`.
-- [ ] Slice 2: Reproducible runtime baseline
-  - RED command + failure:
-  - GREEN command + pass:
+- [x] Slice 2: Reproducible runtime baseline
+  - RED command + failure: `rtk ./run.sh check` failed after the new repository policy gate was wired in because `scripts/check-repository-policy.js` did not exist yet; `rtk node --test tests/run-contract.test.js` also failed on the public policy-checker fixture contract.
+  - GREEN command + pass: `rtk ./run.sh check && rtk npm ci && rtk ./run.sh build` passed after pinning Node `24.16.0`, npm `11.13.0`, exact direct dependencies, `.npmrc` release-age/engine/exact-save policy, and lockfile root consistency.
+- [x] Phase 2 review addendum: repository policy checker validation coverage
+  - RED command + failure: `rtk node --test tests/run-contract.test.js` failed because `run.sh check` passed even when `scripts/validation-target.js` in the package-script fixture had a formatting violation, proving `scripts/**/*.js` was not covered by the package validation targets.
+  - GREEN command + pass: `rtk node --test tests/run-contract.test.js` passed after adding `scripts/**/*.js` to the Prettier and ESLint target sets for both `check` and `format`.
 
 ## Working Notes
 
