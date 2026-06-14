@@ -359,6 +359,120 @@ test("repository policy checker enforces CI and Dependabot governance", async ()
       "<template><div v-masonry></div></template>\n",
     );
     assert.notEqual(runPolicyChecker(fixture).status, 0);
+
+    await writeValidPolicyFixture(fixture);
+    await writeFile(
+      join(fixture, "package.json"),
+      `${JSON.stringify(
+        {
+          ...validPackagePolicy(),
+          dependencies: {
+            ...validPackagePolicy().dependencies,
+            "core-js": "3.44.0",
+          },
+        },
+        null,
+        2,
+      )}\n`,
+    );
+    assert.notEqual(runPolicyChecker(fixture).status, 0);
+
+    await writeValidPolicyFixture(fixture);
+    await writeFile(
+      join(fixture, "package.json"),
+      `${JSON.stringify(
+        {
+          ...validPackagePolicy(),
+          devDependencies: {
+            ...validPackagePolicy().devDependencies,
+            vite: "8.0.15",
+          },
+        },
+        null,
+        2,
+      )}\n`,
+    );
+    assert.notEqual(runPolicyChecker(fixture).status, 0);
+
+    await writeValidPolicyFixture(fixture);
+    await writeFile(
+      join(fixture, "package.json"),
+      `${JSON.stringify(
+        {
+          ...validPackagePolicy(),
+          dependencies: {
+            ...validPackagePolicy().dependencies,
+            zod: "4.0.0",
+          },
+        },
+        null,
+        2,
+      )}\n`,
+    );
+    assert.notEqual(runPolicyChecker(fixture).status, 0);
+
+    await writeValidPolicyFixture(fixture);
+    await writeFile(
+      join(fixture, "src/legacy.ts"),
+      "export const ts = true;\n",
+    );
+    assert.notEqual(runPolicyChecker(fixture).status, 0);
+
+    await writeValidPolicyFixture(fixture);
+    await writeFile(join(fixture, "tsconfig.json"), "{}\n");
+    assert.notEqual(runPolicyChecker(fixture).status, 0);
+
+    await writeValidPolicyFixture(fixture);
+    await writeFile(
+      join(fixture, "vite.config.js"),
+      `export default {
+  resolve: {
+    extensions: [".js", ".ts", ".vue"],
+  },
+};
+`,
+    );
+    assert.notEqual(runPolicyChecker(fixture).status, 0);
+
+    await writeValidPolicyFixture(fixture);
+    await writeFile(
+      join(fixture, "vite.config.js"),
+      `import legacy from "@vitejs/plugin-legacy";
+
+export default {
+  build: {
+    target: "es5",
+  },
+  plugins: [legacy()],
+};
+`,
+    );
+    assert.notEqual(runPolicyChecker(fixture).status, 0);
+
+    await writeValidPolicyFixture(fixture);
+    await writeFile(
+      join(fixture, "package.json"),
+      `${JSON.stringify(
+        {
+          ...validPackagePolicy(),
+          browserslist: ["defaults", "ie 11"],
+        },
+        null,
+        2,
+      )}\n`,
+    );
+    assert.notEqual(runPolicyChecker(fixture).status, 0);
+
+    await writeValidPolicyFixture(fixture);
+    await writeFile(join(fixture, ".eslintrc.cjs"), "module.exports = {};\n");
+    assert.notEqual(runPolicyChecker(fixture).status, 0);
+
+    await writeValidPolicyFixture(fixture);
+    await writeFile(
+      join(fixture, "src/services/gallery-service.js"),
+      "export function createGalleryService() { return {}; }\n",
+    );
+    assert.notEqual(runPolicyChecker(fixture).status, 0);
   } finally {
     rmSync(fixture, { force: true, recursive: true });
   }
@@ -428,8 +542,8 @@ async function createPackageScriptFixture() {
 
   await cp(new URL("../run.sh", import.meta.url), join(fixture, "run.sh"));
   await cp(
-    new URL("../.eslintrc.cjs", import.meta.url),
-    join(fixture, ".eslintrc.cjs"),
+    new URL("../eslint.config.js", import.meta.url),
+    join(fixture, "eslint.config.js"),
   );
   await symlink(
     join(root.pathname, "node_modules"),
@@ -521,6 +635,7 @@ async function writeValidPolicyFixture(fixture) {
   await mkdir(join(fixture, ".github/workflows"), { recursive: true });
   await mkdir(join(fixture, "scripts"), { recursive: true });
   await mkdir(join(fixture, "src/components/home"), { recursive: true });
+  await mkdir(join(fixture, "src/services"), { recursive: true });
   await writeFile(join(fixture, ".node-version"), "24.16.0\n");
   await writeFile(
     join(fixture, ".npmrc"),
@@ -551,15 +666,67 @@ async function writeValidPolicyFixture(fixture) {
     join(fixture, "src/components/home/InfiniteScrollContainer.vue"),
     '<template><div data-gallery-layout="masonry"></div></template>\n',
   );
+  await writeFile(
+    join(fixture, "src/services/gallery-service.js"),
+    `/**
+ * @typedef {Object} FlickrPhoto
+ * @property {string} id
+ */
+
+/**
+ * @typedef {Object} GallerySnapshot
+ * @property {Array<Object>} itemList
+ */
+
+/**
+ * @typedef {Object} GalleryCacheEntry
+ * @property {GallerySnapshot|null} value
+ */
+
+/**
+ * @typedef {Object} GalleryPageResult
+ * @property {{ data: FlickrPhoto[], totalPages: number }} data
+ */
+export function createGalleryService() {
+  return {};
+}
+`,
+  );
+  await writeFile(join(fixture, "eslint.config.js"), "export default [];\n");
+  await writeFile(
+    join(fixture, "vite.config.js"),
+    `export default {
+  resolve: {
+    alias: {},
+  },
+};
+`,
+  );
 }
 
 function validPackagePolicy() {
   return {
     dependencies: {
+      "@mdi/font": "7.4.47",
+      "roboto-fontface": "0.10.0",
       vue: "3.5.38",
+      "vue-router": "5.1.0",
+      vuetify: "4.1.1",
     },
     devDependencies: {
-      vite: "7.1.11",
+      "@eslint/js": "10.0.1",
+      "@playwright/test": "1.60.0",
+      "@vitejs/plugin-vue": "6.0.7",
+      "@vitest/coverage-v8": "4.1.8",
+      "@vue/test-utils": "2.4.11",
+      eslint: "10.5.0",
+      "eslint-plugin-vue": "10.9.2",
+      jsdom: "29.1.1",
+      prettier: "3.8.4",
+      sass: "1.101.0",
+      vite: "8.0.16",
+      "vite-plugin-vuetify": "2.1.3",
+      vitest: "4.1.8",
     },
     engines: {
       node: "24.16.0",

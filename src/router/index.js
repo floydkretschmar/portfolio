@@ -1,4 +1,3 @@
-// Composables
 import { createRouter, createWebHistory } from "vue-router";
 
 const routes = [
@@ -9,8 +8,7 @@ const routes = [
       {
         path: "",
         name: "Home",
-        component: () =>
-          import(/* webpackChunkName: "home" */ "@/views/Home.vue"),
+        component: () => import("@/views/Home.vue"),
       },
     ],
   },
@@ -21,8 +19,7 @@ const routes = [
       {
         path: "",
         name: "About",
-        component: () =>
-          import(/* webpackChunkName: "home" */ "@/views/About.vue"),
+        component: () => import("@/views/About.vue"),
       },
     ],
   },

@@ -32,7 +32,7 @@
         </div>
       </v-card-title>
       <v-dialog v-model="dialog" activator="parent" width="auto">
-        <v-card>
+        <v-card v-if="dialog">
           <img
             class="modal-image"
             :src="image.picture.url"

@@ -14,7 +14,7 @@
 - [ ] CI defers to `run.sh`, uses `npm ci`, and gates deploy after required validation.
 - [ ] Dependabot covers npm and GitHub Actions only, with automerge rules matching the spec.
 - [ ] `gallery-service` is extracted under the service layer with injected dependencies.
-- [ ] Axios, `core-js`, TypeScript support, and the abandoned masonry dependency are removed after replacement/parity is proven.
+- [x] Axios, `core-js`, TypeScript support, and the abandoned masonry dependency are removed after replacement/parity is proven.
 - [ ] Masonry is replaced with CSS-only behavior; no masonry replacement package of any kind is added, including exact-pinned package alternatives.
 - [ ] README and `docs/PROJECT.md` are updated; other process docs stay untouched except tiny unavoidable corrections.
 - [ ] Cleanup removes unused handlers, state, comments, styles, scaffold residue, stale config, and dead dependencies after parity is green.
@@ -36,7 +36,7 @@
 - [x] Phase 10: Deep Gallery Service
 - [x] Phase 11: Observer Boundary
 - [x] Phase 12: CSS Masonry Layout Boundary
-- [ ] Phase 13: Framework And JavaScript Modernization
+- [x] Phase 13: Framework And JavaScript Modernization
 - [ ] Phase 14: Repository Docs
 - [ ] Phase 15: Final Cleanup And Parity Closure
 - [ ] Final verification
@@ -122,6 +122,10 @@
   - GREEN command + pass: `rtk ./run.sh check && rtk ./run.sh test && rtk ./run.sh e2e-tests && rtk ./run.sh build` passed after replacing the production path with a local `[data-gallery-layout="masonry"]` CSS-column boundary, removing `VueMasonryPlugin`, removing `v-masonry`/`v-masonry-tile` usage and `$redrawVueMasonry()`, and uninstalling `vue-masonry`.
   - REFACTOR command + pass: `rtk ./run.sh check && rtk ./run.sh test && rtk ./run.sh e2e-tests && rtk ./run.sh build` passed after deleting the obsolete masonry directive test shim and moving card width/gap usage to the CSS layout boundary variables.
   - POST-REPLACEMENT Browser/Chromium evidence: desktop `1365x900` rendered 40 `.item` elements/20 non-zero loaded cards, no horizontal overflow, 3 columns at x `138/508/878`, density `7/6/7`, 350px cards, container x `138` width `1090`, and the card spacing/size rhythm stayed at the baseline-like 350px card width with roughly 20px vertical gutter; mobile `390x844` rendered 40 `.item` elements/20 non-zero loaded cards, no horizontal overflow, 1 column at x `20`, 350px cards with the same roughly 20px rhythm; deterministic page-two append grew from 20 to 23 cards, no horizontal overflow, 3 columns with density `8/7/8`, first-page card `baseline-first-page photo 1` remained in the DOM, and appended `baseline-second-page photo 1..3` were visible in the CSS masonry flow with the same spacing rhythm.
+- [x] Phase 13: Framework and JavaScript modernization
+  - RED command + failure: `rtk ./run.sh check && rtk ./run.sh test && rtk ./run.sh e2e-tests && rtk ./run.sh build && rtk npm audit --audit-level=high` failed after adding the Phase 13 policy checks because the repo still declared old framework/tooling targets, direct `core-js`, TypeScript validation globs, Vite TypeScript resolver extensions, and legacy `.eslintrc.cjs` lint config.
+  - GREEN command + pass: `rtk ./run.sh check`, `rtk ./run.sh test`, `rtk ./run.sh e2e-tests`, `rtk ./run.sh build`, and `rtk npm audit --audit-level=high` passed after upgrading to the exact target dependency table, removing `core-js`, deleting stale browser/TypeScript config, adding flat ESLint config, preserving dialog close behavior under Vuetify 4, and generating the lockfile with the approved one-time `--min-release-age=0` override before normal `npm ci`.
+  - REFACTOR command + pass: `rtk ./run.sh format && rtk ./run.sh check && rtk ./run.sh test && rtk ./run.sh e2e-tests && rtk ./run.sh build && rtk npm audit --audit-level=high` passed after removing obsolete scaffold comments, webpack chunk comments, old resolver assumptions, and the temporary `vue/valid-v-on` compatibility rule.
 
 ## Working Notes
 

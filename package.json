@@ -3,10 +3,10 @@
   "version": "0.0.0",
   "private": true,
   "scripts": {
-    "check": "prettier package.json package-lock.json index.html README.md 'tasks/**/*.md' '*.{cjs,js,json}' 'src/**/*.{js,ts,vue,scss}' 'scripts/**/*.js' 'tests/**/*.js' --check && eslint config.js 'src/**/*.{js,ts,vue}' 'scripts/**/*.js' 'tests/**/*.js' '*.config.js' --ignore-path .gitignore --max-warnings=0 && node scripts/check-repository-policy.js",
+    "check": "prettier package.json package-lock.json index.html README.md 'tasks/**/*.md' '*.{cjs,js,json}' 'src/**/*.{js,vue,scss}' 'scripts/**/*.js' 'tests/**/*.js' --check && eslint config.js 'src/**/*.{js,vue}' 'scripts/**/*.js' 'tests/**/*.js' '*.config.js' --max-warnings=0 && node scripts/check-repository-policy.js",
     "dev": "vite",
     "e2e-tests": "playwright test",
-    "format": "prettier package.json package-lock.json index.html README.md 'tasks/**/*.md' '*.{cjs,js,json}' 'src/**/*.{js,ts,vue,scss}' 'scripts/**/*.js' 'tests/**/*.js' --write && eslint config.js 'src/**/*.{js,ts,vue}' 'scripts/**/*.js' 'tests/**/*.js' '*.config.js' --ignore-path .gitignore --max-warnings=0 --fix",
+    "format": "prettier package.json package-lock.json index.html README.md 'tasks/**/*.md' '*.{cjs,js,json}' 'src/**/*.{js,vue,scss}' 'scripts/**/*.js' 'tests/**/*.js' --write && eslint config.js 'src/**/*.{js,vue}' 'scripts/**/*.js' 'tests/**/*.js' '*.config.js' --max-warnings=0 --fix",
     "build": "vite build",
     "preview": "vite preview",
     "test": "node --test tests/run-contract.test.js && vitest run --coverage"
@@ -17,24 +17,25 @@
   "packageManager": "npm@11.13.0",
   "type": "module",
   "dependencies": {
-    "@mdi/font": "7.0.96",
-    "core-js": "3.44.0",
+    "@mdi/font": "7.4.47",
     "roboto-fontface": "0.10.0",
-    "vue": "3.5.17",
-    "vue-router": "4.5.1",
-    "vuetify": "3.9.0"
+    "vue": "3.5.38",
+    "vue-router": "5.1.0",
+    "vuetify": "4.1.1"
   },
   "devDependencies": {
+    "@eslint/js": "10.0.1",
     "@playwright/test": "1.60.0",
-    "@vitejs/plugin-vue": "6.0.0",
+    "@vitejs/plugin-vue": "6.0.7",
     "@vitest/coverage-v8": "4.1.8",
-    "eslint": "8.57.1",
-    "eslint-plugin-vue": "9.33.0",
-    "jsdom": "27.4.0",
-    "prettier": "3.6.2",
-    "sass": "1.89.2",
-    "vite": "7.1.11",
-    "vite-plugin-vuetify": "2.1.1",
+    "@vue/test-utils": "2.4.11",
+    "eslint": "10.5.0",
+    "eslint-plugin-vue": "10.9.2",
+    "jsdom": "29.1.1",
+    "prettier": "3.8.4",
+    "sass": "1.101.0",
+    "vite": "8.0.16",
+    "vite-plugin-vuetify": "2.1.3",
     "vitest": "4.1.8"
   }
 }

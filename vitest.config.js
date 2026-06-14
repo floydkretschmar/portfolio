@@ -28,6 +28,7 @@ export default mergeConfig(
         },
       },
       include: ["tests/behavior/**/*.test.js"],
+      setupFiles: ["tests/behavior/setup.js"],
       server: {
         deps: {
           inline: ["vuetify"],

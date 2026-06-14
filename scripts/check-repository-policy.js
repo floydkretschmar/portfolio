@@ -34,6 +34,47 @@ const expectedNpmPolicy = new Map([
   ["min-release-age", "7"],
   ["save-exact", "true"],
 ]);
+const expectedDirectDependencies = {
+  dependencies: {
+    "@mdi/font": "7.4.47",
+    "roboto-fontface": "0.10.0",
+    vue: "3.5.38",
+    "vue-router": "5.1.0",
+    vuetify: "4.1.1",
+  },
+  devDependencies: {
+    "@eslint/js": "10.0.1",
+    "@playwright/test": "1.60.0",
+    "@vitejs/plugin-vue": "6.0.7",
+    "@vitest/coverage-v8": "4.1.8",
+    "@vue/test-utils": "2.4.11",
+    eslint: "10.5.0",
+    "eslint-plugin-vue": "10.9.2",
+    jsdom: "29.1.1",
+    prettier: "3.8.4",
+    sass: "1.101.0",
+    vite: "8.0.16",
+    "vite-plugin-vuetify": "2.1.3",
+    vitest: "4.1.8",
+  },
+};
+const removedDirectDependencies = ["axios", "core-js", "vue-masonry"];
+const runtimeValidationLibraries = [
+  "ajv",
+  "joi",
+  "runtypes",
+  "superstruct",
+  "valibot",
+  "yup",
+  "zod",
+  "io-ts",
+];
+const publicDataContracts = [
+  "FlickrPhoto",
+  "GallerySnapshot",
+  "GalleryCacheEntry",
+  "GalleryPageResult",
+];
 const packageJson = readJson("package.json");
 
 const errors = [
@@ -46,6 +87,9 @@ const errors = [
   ...checkAutomergePolicy(),
   ...checkBranchProtectionDeferral(),
   ...checkMasonryPolicy(),
+  ...checkModernizationPolicy(),
+  ...checkEvergreenBrowserPolicy(),
+  ...checkFlatLintPolicy(),
 ];
 
 if (errors.length > 0) {
@@ -297,6 +341,101 @@ function checkMasonryPolicy() {
   ].filter(Boolean);
 }
 
+function checkModernizationPolicy() {
+  const dependencies = packageJson.dependencies ?? {};
+  const devDependencies = packageJson.devDependencies ?? {};
+  const allDirectDependencies = { ...dependencies, ...devDependencies };
+  const galleryService = readRequiredText("src/services/gallery-service.js");
+
+  return [
+    ...checkExpectedDirectDependencies("dependencies", dependencies),
+    ...checkExpectedDirectDependencies("devDependencies", devDependencies),
+    ...removedDirectDependencies
+      .filter((name) => allDirectDependencies[name])
+      .map(
+        (name) => `package.json must not declare removed dependency ${name}`,
+      ),
+    ...runtimeValidationLibraries
+      .filter((name) => allDirectDependencies[name])
+      .map(
+        (name) =>
+          `package.json must not introduce runtime validation library ${name}`,
+      ),
+    ...publicDataContracts
+      .filter((name) => !galleryService.includes(`@typedef {Object} ${name}`))
+      .map(
+        (name) => `public data contract ${name} must be documented with JSDoc`,
+      ),
+    ...findFiles(".", (path) => isTypeScriptResidue(path)).map(
+      (path) => `${path} must not keep TypeScript source/config residue`,
+    ),
+    /\{js,ts,vue\}|\{js,ts,vue,scss\}|\.ts\b/.test(
+      JSON.stringify(packageJson.scripts ?? {}),
+    )
+      ? "package scripts must not keep TypeScript validation globs"
+      : undefined,
+    /extensions\s*:\s*\[[\s\S]*["']\.(?:ts|tsx)["']/.test(
+      readRequiredText("vite.config.js"),
+    )
+      ? "vite.config.js must not keep TypeScript resolver extensions"
+      : undefined,
+  ].filter(Boolean);
+}
+
+function checkEvergreenBrowserPolicy() {
+  const dependencies = {
+    ...packageJson.dependencies,
+    ...packageJson.devDependencies,
+  };
+  const configText = [
+    readRequiredText("vite.config.js"),
+    readRequiredText("vitest.config.js"),
+  ].join("\n");
+
+  return [
+    dependencies["@vitejs/plugin-legacy"]
+      ? "package.json must not declare legacy browser build tooling"
+      : undefined,
+    /@vitejs\/plugin-legacy|legacy\s*\(/.test(configText)
+      ? "active config must not use legacy browser build tooling"
+      : undefined,
+    /target\s*:\s*["'](?:es5|es2015|es2016)["']/.test(configText)
+      ? "active config must not target stale ES5-era output"
+      : undefined,
+    packageJson.browserslist
+      ? "package.json must not keep legacy browserslist policy"
+      : undefined,
+  ].filter(Boolean);
+}
+
+function checkFlatLintPolicy() {
+  return [
+    readRequiredText("eslint.config.js")
+      ? undefined
+      : "eslint.config.js must define the modern flat lint config",
+    ...findFiles(".", (path) => /^\.eslintrc(?:\..+)?$/.test(path)).map(
+      (path) => `${path} must be removed after migrating to flat lint config`,
+    ),
+  ].filter(Boolean);
+}
+
+function checkExpectedDirectDependencies(label, dependencies = {}) {
+  const expected = expectedDirectDependencies[label];
+  return [
+    ...Object.entries(expected)
+      .filter(([name, version]) => dependencies[name] !== version)
+      .map(
+        ([name, version]) =>
+          `package.json ${label}.${name} must be exactly ${version}`,
+      ),
+    ...Object.keys(dependencies)
+      .filter((name) => !expected[name])
+      .map(
+        (name) => `package.json ${label}.${name} is not in the target table`,
+      ),
+  ];
+}
+
 function checkExactVersions(label, dependencies = {}) {
   return Object.entries(dependencies)
     .filter(([, version]) => !/^\d+\.\d+\.\d+(-[\w.-]+)?$/.test(version))
@@ -351,4 +490,36 @@ function readSourceText(path) {
 
     throw error;
   }
+}
+
+function findFiles(path, predicate) {
+  try {
+    return readdirSync(path).flatMap((entry) => {
+      if ([".git", "coverage", "dist", "node_modules"].includes(entry)) {
+        return [];
+      }
+
+      const childPath = path === "." ? entry : join(path, entry);
+      const stats = statSync(childPath);
+      if (stats.isDirectory()) {
+        return findFiles(childPath, predicate);
+      }
+
+      return predicate(childPath) ? childPath : [];
+    });
+  } catch (error) {
+    if (error.code === "ENOENT") {
+      return [];
+    }
+
+    throw error;
+  }
+}
+
+function isTypeScriptResidue(path) {
+  return (
+    /\.tsx?$/.test(path) ||
+    /(^|\/)tsconfig(?:\..*)?\.json$/.test(path) ||
+    /(^|\/).*typescript.*\.(?:js|json|cjs|mjs)$/.test(path)
+  );
 }
