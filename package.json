@@ -3,10 +3,13 @@
   "version": "0.0.0",
   "private": true,
   "scripts": {
+    "check": "prettier package.json package-lock.json index.html README.md 'tasks/**/*.md' '*.{cjs,js,json}' 'src/**/*.{js,ts,vue,scss}' 'tests/**/*.js' --check && eslint config.js 'src/**/*.{js,ts,vue}' 'tests/**/*.js' '*.config.js' --ignore-path .gitignore --max-warnings=0",
     "dev": "vite",
+    "e2e-tests": "playwright test",
+    "format": "prettier package.json package-lock.json index.html README.md 'tasks/**/*.md' '*.{cjs,js,json}' 'src/**/*.{js,ts,vue,scss}' 'tests/**/*.js' --write && eslint config.js 'src/**/*.{js,ts,vue}' 'tests/**/*.js' '*.config.js' --ignore-path .gitignore --max-warnings=0 --fix",
     "build": "vite build",
     "preview": "vite preview",
-    "lint": "eslint . --fix --ignore-path .gitignore"
+    "test": "node --test tests/run-contract.test.js && vitest run --coverage"
   },
   "type": "module",
   "dependencies": {
@@ -20,12 +23,16 @@
     "vuetify": "^3.9.0"
   },
   "devDependencies": {
+    "@playwright/test": "^1.60.0",
     "@vitejs/plugin-vue": "^6.0.0",
+    "@vitest/coverage-v8": "^4.1.8",
     "eslint": "^8.57.1",
     "eslint-plugin-vue": "^9.33.0",
+    "jsdom": "^27.4.0",
     "prettier": "^3.6.2",
     "sass": "^1.89.2",
     "vite": "^7.1.11",
-    "vite-plugin-vuetify": "^2.1.1"
+    "vite-plugin-vuetify": "^2.1.1",
+    "vitest": "^4.1.8"
   }
 }

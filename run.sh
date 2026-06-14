@@ -1,24 +1,8 @@
 #!/usr/bin/env sh
 set -eu
 
-run_test() {
-  # JavaScript example:
-  #   run package-manager test
-  #   run package-manager typecheck
-  #   run package-manager lint
-  :
-}
-
-run_format() {
-  # JavaScript example:
-  #   run prettier across the repository
-  :
-}
-
-run_build() {
-  # JavaScript example:
-  #   run package-manager build
-  :
+usage() {
+  echo "Usage: $0 {check|format|test|e2e-tests|build|rtk-hook|safety-hook|setup-environment}" >&2
 }
 
 rtk_hook() {
@@ -47,14 +31,20 @@ setup_environment() {
 }
 
 case "${1:-}" in
+  check)
+    npm run check
+    ;;
   test)
-    run_test
+    npm run test
+    ;;
+  e2e-tests)
+    npm run e2e-tests
     ;;
   format)
-    run_format
+    npm run format
     ;;
   build)
-    run_build
+    npm run build
     ;;
   rtk-hook)
     rtk_hook
@@ -66,7 +56,7 @@ case "${1:-}" in
     setup_environment
     ;;
   *)
-    echo "Usage: $0 {test|format|build}" >&2
+    usage
     exit 2
     ;;
 esac

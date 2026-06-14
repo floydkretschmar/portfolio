@@ -5,6 +5,7 @@
 **Spec:** docs/specs/2026-06-14-repository-renovation.md
 
 ## Acceptance Criteria
+
 - [ ] Home/gallery and About behavior remain visually and behaviorally equivalent to the current production experience.
 - [ ] The external Flickr service contract remains exactly `GET /photos/{photoset}?page={page}&limit={limit}`.
 - [ ] `run.sh` exposes and backs `format`, `check`, `test`, `e2e-tests`, and `build`.
@@ -22,7 +23,8 @@
 - [ ] Branch protection evidence exists on `main`, or a user-approved deferral is documented.
 
 ## Phases
-- [ ] Phase 1: Truthful Local Validation
+
+- [x] Phase 1: Truthful Local Validation
 - [ ] Phase 2: Reproducible Runtime Baseline
 - [ ] Phase 3: CI, Dependabot, And Deployment Gates
 - [ ] Phase 4: Route And Production Preview Parity
@@ -40,13 +42,20 @@
 - [ ] Final verification
 
 ## TDD Slice Log (Required)
-- [ ] Slice 1: Truthful local validation
-  - RED command + failure:
-  - GREEN command + pass:
+
+- [x] Slice 1: Truthful local validation
+  - RED command + failure: `rtk node --test tests/run-contract.test.js` failed because `run.sh check` exited through unsupported-command usage instead of dispatching package-backed validation; the mutation split also failed because `format` was still a placeholder and did not rewrite the fixture file.
+  - GREEN command + pass: `rtk ./run.sh test` passed with wrapper contract coverage and Vitest behavior-unit coverage at 100% lines, above the 90% gate.
+- [x] Phase 1 review addendum: truthful local validation contract
+  - RED command + failure: `rtk node --test tests/run-contract.test.js` failed because `run.sh format` left the auto-fixable ESLint `no-regex-spaces` issue unchanged after `run.sh check` reported it without mutating the fixture.
+  - GREEN command + pass: `rtk node --test tests/run-contract.test.js` passed after `format` ran ESLint `--fix` over the same target set as `check`.
 - [ ] Slice 2: Reproducible runtime baseline
   - RED command + failure:
   - GREEN command + pass:
 
 ## Working Notes
+
+- Phase 1 helper command contract: existing `rtk-hook`, `safety-hook`, and `setup-environment` responsibilities remain available in `run.sh`; no helper was removed as no longer applicable.
+- Phase 1 review addendum restored the legacy empty `ImageCard` click handlers and keeps `vue/valid-v-on` disabled until the planned cleanup phase can remove that production residue in scope.
 
 ## Results
