@@ -16,7 +16,7 @@
 - [ ] `gallery-service` is extracted under the service layer with injected dependencies.
 - [x] Axios, `core-js`, TypeScript support, and the abandoned masonry dependency are removed after replacement/parity is proven.
 - [ ] Masonry is replaced with CSS-only behavior; no masonry replacement package of any kind is added, including exact-pinned package alternatives.
-- [ ] README and `docs/PROJECT.md` are updated; other process docs stay untouched except tiny unavoidable corrections.
+- [x] README and `docs/PROJECT.md` are updated; other process docs stay untouched except tiny unavoidable corrections.
 - [ ] Cleanup removes unused handlers, state, comments, styles, scaffold residue, stale config, and dead dependencies after parity is green.
 - [ ] Required done evidence is green: `rtk npm ci`, `rtk ./run.sh format`, `rtk ./run.sh check`, `rtk ./run.sh test`, `rtk ./run.sh e2e-tests`, `rtk ./run.sh build`, `rtk npm audit signatures --min-release-age=0`, and `rtk npm audit --audit-level=high`.
 - [ ] Browser visual checks pass for Home/gallery and About on desktop and mobile.
@@ -37,7 +37,7 @@
 - [x] Phase 11: Observer Boundary
 - [x] Phase 12: CSS Masonry Layout Boundary
 - [x] Phase 13: Framework And JavaScript Modernization
-- [ ] Phase 14: Repository Docs
+- [x] Phase 14: Repository Docs
 - [ ] Phase 15: Final Cleanup And Parity Closure
 - [ ] Final verification
 
@@ -126,6 +126,11 @@
   - RED command + failure: `rtk ./run.sh check && rtk ./run.sh test && rtk ./run.sh e2e-tests && rtk ./run.sh build && rtk npm audit --audit-level=high` failed after adding the Phase 13 policy checks because the repo still declared old framework/tooling targets, direct `core-js`, TypeScript validation globs, Vite TypeScript resolver extensions, and legacy `.eslintrc.cjs` lint config.
   - GREEN command + pass: `rtk ./run.sh check`, `rtk ./run.sh test`, `rtk ./run.sh e2e-tests`, `rtk ./run.sh build`, and `rtk npm audit --audit-level=high` passed after upgrading to the exact target dependency table, removing `core-js`, deleting stale browser/TypeScript config, adding flat ESLint config, preserving dialog close behavior under Vuetify 4, and generating the lockfile with the approved one-time `--min-release-age=0` override before normal `npm ci`.
   - REFACTOR command + pass: `rtk ./run.sh format && rtk ./run.sh check && rtk ./run.sh test && rtk ./run.sh e2e-tests && rtk ./run.sh build && rtk npm audit --audit-level=high` passed after removing obsolete scaffold comments, webpack chunk comments, old resolver assumptions, and the temporary `vue/valid-v-on` compatibility rule.
+- [x] Phase 14: Repository Docs
+  - RED baseline + stale-doc evidence: `rtk ./run.sh check` passed before documentation changes, so markdown/format validation was already green; manual stale-doc review remained red because `README.md` still contained scaffold package-manager/lint commands and `docs/PROJECT.md` still referenced stale TypeScript and Vue Masonry architecture.
+  - GREEN command + pass: `rtk ./run.sh check` passed after rewriting `README.md` and `docs/PROJECT.md` to describe the renovated Vue/Vite client, `run.sh` command surface, validation/e2e/build/deploy expectations, pinned npm runtime policy, and the external Flickr service contract without claiming backend ownership.
+  - REFACTOR command + pass: `rtk ./run.sh check` passed after removing duplicated scaffold/operator text and keeping the README focused on operations while `docs/PROJECT.md` carries the durable module and service-boundary overview.
+  - REVIEW FIX command + pass: `rtk npm exec -- prettier docs/PROJECT.md --check && rtk ./run.sh check && rtk node --test tests/run-contract.test.js` passed after adding `docs/PROJECT.md` to the wrapper format/check targets and formatting the project overview.
 
 ## Working Notes
 

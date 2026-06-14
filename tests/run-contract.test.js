@@ -550,6 +550,7 @@ async function createPackageScriptFixture() {
     join(fixture, "node_modules"),
   );
   await mkdir(join(fixture, "scripts"));
+  await mkdir(join(fixture, "docs"));
   await mkdir(join(fixture, "src"));
   await mkdir(join(fixture, "tasks"));
   await mkdir(join(fixture, "tests"));
@@ -578,6 +579,7 @@ async function createPackageScriptFixture() {
     "engine-strict=true\nsave-exact=true\nmin-release-age=7\n",
   );
   await writeFile(join(fixture, "README.md"), "# Fixture\n");
+  await writeFile(join(fixture, "docs/PROJECT.md"), "# Fixture\n");
   await writeFile(join(fixture, "config.js"), "export default {};\n");
   await writeFile(join(fixture, "index.html"), '<div id="app"></div>\n');
   await writeFile(
