@@ -17,12 +17,15 @@
 </template>
 
 <script>
-import ApiService from "@/services/ApiService.ts";
 import ImageCard from "@/components/home/ImageCard.vue";
+import { createFlickrClient } from "@/services/flickr-client.js";
 import { createSessionCache } from "@/services/session-cache.js";
 import config from "../../../config.js";
 
-const apiService = new ApiService();
+const flickrClient = createFlickrClient({
+  config,
+  fetch: (...args) => window.fetch(...args),
+});
 export default {
   data: () => ({
     itemList: [],
@@ -88,8 +91,8 @@ export default {
       }
     },
     async load() {
-      const res = await apiService
-        .fetchItemsAPI(this.pageNumber, this.pageCount)
+      const res = await flickrClient
+        .fetchPage(this.pageNumber, this.pageCount)
         .catch(() => {
           this.isLoading = false;
           return null;

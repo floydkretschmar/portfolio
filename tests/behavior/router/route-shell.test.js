@@ -6,7 +6,7 @@ import App from "../../../src/App.vue";
 import { registerPlugins } from "../../../src/plugins";
 import router from "../../../src/router";
 
-const axios = vi.hoisted(() => vi.fn());
+const fetch = vi.hoisted(() => vi.fn());
 const photo = {
   dateWhenTaken: "2026-06-14",
   id: "route-photo",
@@ -25,10 +25,6 @@ const photo = {
 const photos = Array.from({ length: 2 }, (_, index) => ({
   ...photo,
   id: `route-photo-${index}`,
-}));
-
-vi.mock("axios", () => ({
-  default: axios,
 }));
 
 class TestResizeObserver {
@@ -56,11 +52,13 @@ async function renderAppAt(path) {
   window.history.pushState({}, "", path);
   window.ResizeObserver = TestResizeObserver;
 
-  axios.mockResolvedValue({
-    data: {
-      data: photos,
-      totalPages: 1,
-    },
+  window.fetch = fetch.mockResolvedValue({
+    json: () =>
+      Promise.resolve({
+        data: photos,
+        totalPages: 1,
+      }),
+    ok: true,
   });
 
   const app = createApp(App);
@@ -75,6 +73,7 @@ async function renderAppAt(path) {
 describe("route shell", () => {
   afterEach(() => {
     vi.clearAllMocks();
+    delete window.fetch;
     document.body.innerHTML = "";
   });
 

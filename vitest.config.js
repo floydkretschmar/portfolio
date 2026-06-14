@@ -8,7 +8,7 @@ export default mergeConfig(
     test: {
       coverage: {
         all: true,
-        include: ["src/services/ApiService.ts"],
+        include: ["src/services/flickr-client.js"],
         provider: "v8",
         reportsDirectory: "coverage/behavior-unit",
         reporter: ["text"],

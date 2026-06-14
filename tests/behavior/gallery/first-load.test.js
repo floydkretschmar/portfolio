@@ -16,11 +16,7 @@ import {
 } from "./fixtures.js";
 import { createSessionCache } from "../../../src/services/session-cache.js";
 
-const axios = vi.hoisted(() => vi.fn());
-
-vi.mock("axios", () => ({
-  default: axios,
-}));
+const fetch = vi.hoisted(() => vi.fn());
 
 class TestResizeObserver {
   observe() {}
@@ -36,14 +32,34 @@ function nextFrame() {
   });
 }
 
+function fetchResponse(body) {
+  return {
+    json: () => Promise.resolve(body),
+    ok: true,
+  };
+}
+
 function resolvePageOne() {
-  axios.mockResolvedValue(pageOneResponse());
+  fetch.mockResolvedValue(fetchResponse(pageOneResponse().data));
 }
 
 function mockPages(pages) {
-  axios.mockImplementation(({ params }) =>
-    Promise.resolve(pageResponse(pages[params.page], pages.length - 1)),
+  fetch.mockImplementation((requestUrl) => {
+    const page = Number(new URL(requestUrl).searchParams.get("page"));
+    return Promise.resolve(
+      fetchResponse(pageResponse(pages[page], pages.length - 1).data),
+    );
+  });
+}
+
+function requestedPageNumbers() {
+  return fetch.mock.calls.map(([requestUrl]) =>
+    Number(new URL(requestUrl).searchParams.get("page")),
   );
+}
+
+function flickrUrl(page) {
+  return `${config.service_base_url}/photos/${config.photoset}?page=${page}&limit=20`;
 }
 
 function setupNearBottomScrollPosition() {
@@ -102,6 +118,7 @@ async function scrollNearBottom() {
 }
 
 async function mountGallery({ seedStorage, waitForPhoto = true } = {}) {
+  window.fetch = fetch;
   window.ResizeObserver = TestResizeObserver;
   sessionStorage.clear();
   seedStorage?.();
@@ -127,6 +144,7 @@ async function mountGallery({ seedStorage, waitForPhoto = true } = {}) {
 describe("first gallery load", () => {
   afterEach(() => {
     vi.clearAllMocks();
+    delete window.fetch;
     sessionStorage.clear();
     document.body.innerHTML = "";
   });
@@ -136,6 +154,7 @@ describe("first gallery load", () => {
 
     const app = await mountGallery();
 
+    expect(fetch).toHaveBeenCalledWith(flickrUrl(1));
     expect(document.body.textContent).toContain(firstLoadPhoto.title);
     expect(document.body.textContent).toContain(firstLoadPhoto.dateWhenTaken);
     expect(document.body.textContent).toContain(
@@ -151,7 +170,7 @@ describe("first gallery load", () => {
 
   it("shows skeleton cards before a delayed first page resolves", async () => {
     const pageOne = createDeferred();
-    axios.mockReturnValue(pageOne.promise);
+    fetch.mockReturnValue(pageOne.promise);
 
     const app = await mountGallery({ waitForPhoto: false });
     const skeletons = document.querySelectorAll(".v-skeleton-loader");
@@ -159,16 +178,9 @@ describe("first gallery load", () => {
     expect(skeletons.length).toBeGreaterThan(0);
     expect(skeletons[0].style.height).not.toBe("0px");
     expect(document.body.textContent).not.toContain(firstLoadPhoto.title);
-    expect(axios).toHaveBeenCalledWith({
-      method: "get",
-      params: {
-        limit: 20,
-        page: 1,
-      },
-      url: `${config.service_base_url}/photos/${config.photoset}`,
-    });
+    expect(fetch).toHaveBeenCalledWith(flickrUrl(1));
 
-    pageOne.resolve(pageOneResponse());
+    pageOne.resolve(fetchResponse(pageOneResponse().data));
     await vi.waitFor(() => {
       expect(document.body.textContent).toContain(firstLoadPhoto.title);
     });
@@ -176,12 +188,12 @@ describe("first gallery load", () => {
   });
 
   it("keeps the loading presentation without new error UI when first page fails", async () => {
-    axios.mockRejectedValue(new Error("Flickr unavailable"));
+    fetch.mockRejectedValue(new Error("Flickr unavailable"));
 
     const app = await mountGallery({ waitForPhoto: false });
 
     await vi.waitFor(() => {
-      expect(axios).toHaveBeenCalled();
+      expect(fetch).toHaveBeenCalled();
     });
 
     expect(
@@ -206,14 +218,7 @@ describe("first gallery load", () => {
     });
 
     expect(document.body.textContent).toContain(firstLoadPhoto.title);
-    expect(axios).toHaveBeenCalledWith({
-      method: "get",
-      params: {
-        limit: 20,
-        page: 1,
-      },
-      url: `${config.service_base_url}/photos/${config.photoset}`,
-    });
+    expect(fetch).toHaveBeenCalledWith(flickrUrl(1));
     app.unmount();
   });
 
@@ -230,14 +235,7 @@ describe("first gallery load", () => {
     });
 
     expect(document.body.textContent).toContain(firstLoadPhoto.title);
-    expect(axios).toHaveBeenCalledWith({
-      method: "get",
-      params: {
-        limit: 20,
-        page: 1,
-      },
-      url: `${config.service_base_url}/photos/${config.photoset}`,
-    });
+    expect(fetch).toHaveBeenCalledWith(flickrUrl(1));
     app.unmount();
   });
 
@@ -253,7 +251,7 @@ describe("first gallery load", () => {
     expect(visiblePhotoTitles()).toEqual(
       cachedPhotos.map((photo) => photo.title),
     );
-    expect(axios).not.toHaveBeenCalled();
+    expect(fetch).not.toHaveBeenCalled();
     app.unmount();
   });
 
@@ -269,14 +267,7 @@ describe("first gallery load", () => {
     });
 
     expect(document.body.textContent).toContain(firstLoadPhoto.title);
-    expect(axios).toHaveBeenCalledWith({
-      method: "get",
-      params: {
-        limit: 20,
-        page: 1,
-      },
-      url: `${config.service_base_url}/photos/${config.photoset}`,
-    });
+    expect(fetch).toHaveBeenCalledWith(flickrUrl(1));
     app.unmount();
   });
 
@@ -308,7 +299,7 @@ describe("first gallery load", () => {
 
     await vi.waitFor(
       () => {
-        expect(axios).toHaveBeenCalledTimes(2);
+        expect(fetch).toHaveBeenCalledTimes(2);
       },
       { timeout: 1000 },
     );
@@ -319,15 +310,8 @@ describe("first gallery load", () => {
       { timeout: 1000 },
     );
 
-    expect(axios).toHaveBeenCalledTimes(2);
-    expect(axios).toHaveBeenLastCalledWith({
-      method: "get",
-      params: {
-        limit: 20,
-        page: 2,
-      },
-      url: `${config.service_base_url}/photos/${config.photoset}`,
-    });
+    expect(fetch).toHaveBeenCalledTimes(2);
+    expect(fetch).toHaveBeenLastCalledWith(flickrUrl(2));
     expect(visiblePhotoTitles()).toEqual([
       ...firstPage.map((photo) => photo.title),
       ...finalPage.map((photo) => photo.title),
@@ -337,7 +321,7 @@ describe("first gallery load", () => {
     );
 
     await scrollNearBottom();
-    expect(axios).toHaveBeenCalledTimes(2);
+    expect(fetch).toHaveBeenCalledTimes(2);
     expect(visibleGalleryImages()).toHaveLength(
       firstPage.length + finalPage.length,
     );
@@ -348,12 +332,13 @@ describe("first gallery load", () => {
     const firstPage = createPhotos("pending-first-page", 20);
     const secondPage = createPhotos("pending-second-page", 3);
     const pageTwo = createDeferred();
-    axios.mockImplementation(({ params }) => {
-      if (params.page === 2) {
+    fetch.mockImplementation((requestUrl) => {
+      const page = Number(new URL(requestUrl).searchParams.get("page"));
+      if (page === 2) {
         return pageTwo.promise;
       }
 
-      return Promise.resolve(pageResponse(firstPage, 2));
+      return Promise.resolve(fetchResponse(pageResponse(firstPage, 2).data));
     });
 
     const app = await mountGallery({ waitForPhoto: false });
@@ -370,11 +355,9 @@ describe("first gallery load", () => {
     triggerNearBottomScroll();
     await nextFrame();
 
-    expect(
-      axios.mock.calls.filter(([request]) => request.params.page === 2),
-    ).toHaveLength(1);
+    expect(requestedPageNumbers().filter((page) => page === 2)).toHaveLength(1);
 
-    pageTwo.resolve(pageResponse(secondPage, 2));
+    pageTwo.resolve(fetchResponse(pageResponse(secondPage, 2).data));
     await vi.waitFor(
       () => {
         expect(document.body.textContent).toContain(
@@ -394,14 +377,17 @@ describe("first gallery load", () => {
     const firstPage = createPhotos("recoverable-first-page", 20);
     const secondPage = createPhotos("recoverable-second-page", 3);
     let pageTwoFailed = false;
-    axios.mockImplementation(({ params }) => {
-      if (params.page === 2 && !pageTwoFailed) {
+    fetch.mockImplementation((requestUrl) => {
+      const page = Number(new URL(requestUrl).searchParams.get("page"));
+      if (page === 2 && !pageTwoFailed) {
         pageTwoFailed = true;
         return Promise.reject(new Error("Flickr unavailable"));
       }
 
       return Promise.resolve(
-        pageResponse(params.page === 1 ? firstPage : secondPage, 2),
+        fetchResponse(
+          pageResponse(page === 1 ? firstPage : secondPage, 2).data,
+        ),
       );
     });
 
@@ -414,9 +400,9 @@ describe("first gallery load", () => {
 
     await scrollNearBottom();
     await vi.waitFor(() => {
-      expect(
-        axios.mock.calls.filter(([request]) => request.params.page === 2),
-      ).toHaveLength(1);
+      expect(requestedPageNumbers().filter((page) => page === 2)).toHaveLength(
+        1,
+      );
     });
     await nextFrame();
 
@@ -434,7 +420,7 @@ describe("first gallery load", () => {
     await vi.waitFor(
       () => {
         expect(
-          axios.mock.calls.filter(([request]) => request.params.page === 2),
+          requestedPageNumbers().filter((page) => page === 2),
         ).toHaveLength(2);
       },
       { timeout: 1000 },

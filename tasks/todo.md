@@ -32,7 +32,7 @@
 - [x] Phase 6: Gallery Continuation Characterization
 - [x] Phase 7: Cache And Failed-Load Recovery
 - [x] Phase 8: Image Card Interaction Contract
-- [ ] Phase 9: Native Fetch Flickr Client
+- [x] Phase 9: Native Fetch Flickr Client
 - [ ] Phase 10: Deep Gallery Service
 - [ ] Phase 11: Observer Boundary
 - [ ] Phase 12: CSS Masonry Layout Boundary
@@ -88,6 +88,11 @@
   - PLAYWRIGHT command + pass: `rtk ./run.sh e2e-tests` passed with browser coverage for clicking a loaded image to open/close the dialog and for a mocked displayed-image request failure switching to the fixture fallback URL.
   - REFACTOR command + pass: `rtk ./run.sh test && rtk ./run.sh e2e-tests` passed after removing empty card click handlers and unused card state.
   - REVIEW FIX command + pass: `rtk ./run.sh test -- tests/behavior/gallery/image-card.test.js && rtk ./run.sh e2e-tests` passed after using the existing service-shaped `picture.fallback` field for displayed image failures.
+- [x] Phase 9: Native Fetch Flickr Client
+  - RED command + failure: `rtk ./run.sh test && rtk ./run.sh e2e-tests` failed because `src/services/flickr-client.js` did not exist for the new native-fetch Flickr contract test.
+  - RED command + failure: `rtk ./run.sh test && rtk ./run.sh e2e-tests` failed because Home still used the Axios path and the native `fetch` spy received zero calls for `/photos/{photoset}?page=1&limit=20`.
+  - GREEN command + pass: `rtk ./run.sh test && rtk ./run.sh e2e-tests && rtk ./run.sh build` passed after wiring Home to the injected native-fetch Flickr client, preserving visible gallery behavior, covering non-OK/invalid JSON/missing fetch failures, deleting the old TypeScript service surface, and removing Axios.
+  - REFACTOR command + pass: `rtk ./run.sh format && rtk ./run.sh test && rtk ./run.sh e2e-tests && rtk ./run.sh build` passed after replacing the stale behavior-unit coverage include with `src/services/flickr-client.js`.
 
 ## Working Notes
 
