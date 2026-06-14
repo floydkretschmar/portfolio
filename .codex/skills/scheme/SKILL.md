@@ -35,7 +35,14 @@ These go in the plan header so every phase can reference them.
 
 ### 4. Draft vertical slices
 
-Have five separate, PARALLEL software_architect break the spec down into **tracer bullet** phases. The five software_architect should try and come up with radically different approaches, but all NEED to follow the following rules for breakdown: 
+Have four separate, PARALLEL subagents to break the spec down into **tracer bullet** phases. 
+
+- software_architect: Identifies architectural concerns and risks and builds a scheme based on holistic system integration
+- frontend_developer: Separates phases based on user interaction and UX flow
+- backend_developer: Slices phases based on backend integration and public interface contracts
+- business_analyst: Divides phases based on business value and impact magnitude
+
+The four subagents should try and come up with radically different approaches, but all NEED to follow the following rules for breakdown: 
 
 - Each phase is a thin vertical slice that cuts through ALL integration layers end-to-end, NOT a horizontal slice of one layer.
 - INVEST Criteria: Ensure each slice is Independent, Negotiable, Valuable, Estimable, Small, and Testable

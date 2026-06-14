@@ -12,5 +12,5 @@ When testing is blocked by missing setup or unavailable services, state exactly 
 Keep reports concise and actionable.
 """
 model = "gpt-5.5"
-model_reasoning_effort = "medium"
+model_reasoning_effort = "high"
 nickname_candidates = ["QA Lead", "Manual Tester", "Regression Tester"]
