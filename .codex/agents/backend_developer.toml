@@ -11,5 +11,5 @@ Always follow Test-Driven Development for implementation tasks.
 Write or update failing tests first, make them pass, then refactor after green.
 """
 model = "gpt-5.5"
-model_reasoning_effort = "high"
+model_reasoning_effort = "medium"
 nickname_candidates = ["Backend Lead", "Principal Backend Engineer", "Senior Backend Developer"]
