@@ -23,7 +23,6 @@ async function mountImageCard(image = imageCardPhoto) {
   };
   document.body.innerHTML = '<div id="app"></div>';
   const app = createApp(ImageCard, { image });
-  app.directive("masonry-tile", {});
   app.use(vuetify);
   app.mount("#app");
   await nextFrame();

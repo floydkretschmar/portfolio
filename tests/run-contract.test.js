@@ -335,6 +335,30 @@ test("repository policy checker enforces CI and Dependabot governance", async ()
       `PERSONAL_ACCESS_TOKEN=token\n${validAutomergeWorkflow()}`,
     );
     assert.notEqual(runPolicyChecker(fixture).status, 0);
+
+    await writeValidPolicyFixture(fixture);
+    await writeFile(
+      join(fixture, "package.json"),
+      `${JSON.stringify(
+        {
+          ...validPackagePolicy(),
+          dependencies: {
+            ...validPackagePolicy().dependencies,
+            "vue-masonry": "0.16.0",
+          },
+        },
+        null,
+        2,
+      )}\n`,
+    );
+    assert.notEqual(runPolicyChecker(fixture).status, 0);
+
+    await writeValidPolicyFixture(fixture);
+    await writeFile(
+      join(fixture, "src/components/home/InfiniteScrollContainer.vue"),
+      "<template><div v-masonry></div></template>\n",
+    );
+    assert.notEqual(runPolicyChecker(fixture).status, 0);
   } finally {
     rmSync(fixture, { force: true, recursive: true });
   }
@@ -496,6 +520,7 @@ function runPolicyChecker(cwd) {
 async function writeValidPolicyFixture(fixture) {
   await mkdir(join(fixture, ".github/workflows"), { recursive: true });
   await mkdir(join(fixture, "scripts"), { recursive: true });
+  await mkdir(join(fixture, "src/components/home"), { recursive: true });
   await writeFile(join(fixture, ".node-version"), "24.16.0\n");
   await writeFile(
     join(fixture, ".npmrc"),
@@ -521,6 +546,10 @@ async function writeValidPolicyFixture(fixture) {
   await writeFile(
     join(fixture, ".github/branch-protection.md"),
     validBranchProtectionDeferral(),
+  );
+  await writeFile(
+    join(fixture, "src/components/home/InfiniteScrollContainer.vue"),
+    '<template><div data-gallery-layout="masonry"></div></template>\n',
   );
 }
 

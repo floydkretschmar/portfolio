@@ -118,6 +118,10 @@ function visibleGalleryImages() {
   return document.querySelectorAll(".image-container .item img.image");
 }
 
+function galleryLayout() {
+  return document.querySelector('[data-gallery-layout="masonry"]');
+}
+
 async function triggerCurrentObserver(isIntersecting) {
   intersectionObservers.at(-1).intersect(isIntersecting);
   await nextFrame();
@@ -352,6 +356,15 @@ describe("first gallery load", () => {
     expect(fetch).toHaveBeenCalledTimes(2);
     expect(fetch).toHaveBeenLastCalledWith(flickrUrl(2));
     expect(visiblePhotoTitles()).toEqual([
+      ...firstPage.map((photo) => photo.title),
+      ...finalPage.map((photo) => photo.title),
+    ]);
+    expect(galleryLayout()).not.toBeNull();
+    expect(
+      Array.from(galleryLayout().querySelectorAll("img.image")).map((image) =>
+        image.getAttribute("alt"),
+      ),
+    ).toEqual([
       ...firstPage.map((photo) => photo.title),
       ...finalPage.map((photo) => photo.title),
     ]);

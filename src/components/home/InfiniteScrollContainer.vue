@@ -1,18 +1,7 @@
 <template>
   <div>
-    <div
-      v-masonry
-      class="image-container"
-      transition-duration="0"
-      item-selector=".item"
-      :origin-top="true"
-      :horizontal-order="true"
-      :fit-width="true"
-      gutter="20"
-    >
-      <div class="row">
-        <image-card v-for="image in itemList" :key="image.id" :image="image" />
-      </div>
+    <div class="image-container" data-gallery-layout="masonry">
+      <image-card v-for="image in itemList" :key="image.id" :image="image" />
     </div>
     <div ref="sentinel" class="gallery-sentinel" aria-hidden="true"></div>
   </div>
@@ -103,9 +92,7 @@ export default {
       }
 
       this.isLoading = true;
-      this.load().then(() => {
-        this.$redrawVueMasonry();
-      });
+      this.load();
     },
     async load() {
       const snapshot = await this.gallery.loadNext();
@@ -121,8 +108,43 @@ export default {
 
 <style lang="scss" scoped>
 .image-container {
+  --gallery-card-width: 350px;
+  --gallery-column-count: 1;
+  --gallery-gap: 20px;
+  column-count: var(--gallery-column-count);
+  column-gap: var(--gallery-gap);
   margin: auto;
-  position: relative;
+  width: min(
+    calc(
+      var(--gallery-card-width) * var(--gallery-column-count) +
+        var(--gallery-gap) * (var(--gallery-column-count) - 1)
+    ),
+    calc(100vw - 40px)
+  );
+}
+
+@media (min-width: 760px) {
+  .image-container {
+    --gallery-column-count: 2;
+  }
+}
+
+@media (min-width: 1130px) {
+  .image-container {
+    --gallery-column-count: 3;
+  }
+}
+
+@media (min-width: 1500px) {
+  .image-container {
+    --gallery-column-count: 4;
+  }
+}
+
+@media (min-width: 1870px) {
+  .image-container {
+    --gallery-column-count: 5;
+  }
 }
 
 .gallery-sentinel {

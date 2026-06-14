@@ -1,4 +1,4 @@
-import { readFileSync } from "node:fs";
+import { readdirSync, readFileSync, statSync } from "node:fs";
 import { join } from "node:path";
 
 const expectedNode = "24.16.0";
@@ -45,6 +45,7 @@ const errors = [
   ...checkDependabotPolicy(),
   ...checkAutomergePolicy(),
   ...checkBranchProtectionDeferral(),
+  ...checkMasonryPolicy(),
 ];
 
 if (errors.length > 0) {
@@ -274,6 +275,28 @@ function checkBranchProtectionDeferral() {
   ].filter(Boolean);
 }
 
+function checkMasonryPolicy() {
+  const sourceText = readSourceText("src");
+  const dependencies = {
+    ...packageJson.dependencies,
+    ...packageJson.devDependencies,
+  };
+  const masonryDependencies = Object.keys(dependencies).filter((name) =>
+    /masonry/i.test(name),
+  );
+
+  return [
+    masonryDependencies.length > 0
+      ? `package.json must not declare masonry dependencies: ${masonryDependencies.join(", ")}`
+      : undefined,
+    /v-masonry|masonry-tile|VueMasonryPlugin|\$redrawVueMasonry/.test(
+      sourceText,
+    )
+      ? "src must not keep the abandoned imperative Vue masonry directive/plugin/redraw path"
+      : undefined,
+  ].filter(Boolean);
+}
+
 function checkExactVersions(label, dependencies = {}) {
   return Object.entries(dependencies)
     .filter(([, version]) => !/^\d+\.\d+\.\d+(-[\w.-]+)?$/.test(version))
@@ -306,4 +329,26 @@ function sameJson(left, right) {
 
 function includesAll(text, values) {
   return values.every((value) => text.includes(value));
+}
+
+function readSourceText(path) {
+  try {
+    return readdirSync(path)
+      .flatMap((entry) => {
+        const childPath = join(path, entry);
+        const stats = statSync(childPath);
+        if (stats.isDirectory()) {
+          return readSourceText(childPath);
+        }
+
+        return /\.(js|vue|scss)$/.test(entry) ? readText(childPath) : "";
+      })
+      .join("\n");
+  } catch (error) {
+    if (error.code === "ENOENT") {
+      return "";
+    }
+
+    throw error;
+  }
 }

@@ -35,7 +35,7 @@
 - [x] Phase 9: Native Fetch Flickr Client
 - [x] Phase 10: Deep Gallery Service
 - [x] Phase 11: Observer Boundary
-- [ ] Phase 12: CSS Masonry Layout Boundary
+- [x] Phase 12: CSS Masonry Layout Boundary
 - [ ] Phase 13: Framework And JavaScript Modernization
 - [ ] Phase 14: Repository Docs
 - [ ] Phase 15: Final Cleanup And Parity Closure
@@ -113,6 +113,15 @@
   - RED command + failure: `rtk ./run.sh test && rtk ./run.sh e2e-tests` failed after adding the active-gallery observer sentinel behavior because the mounted Home gallery created zero `IntersectionObserver` instances; the old scroll-listener implementation also leaked a failed mounted app into the next continuation test when the new RED assertion stopped before cleanup.
   - GREEN command + pass: `rtk ./run.sh test && rtk ./run.sh e2e-tests` passed after wiring Home to an injectable native observer boundary, observing the production sentinel, requesting gallery continuation only on intersecting entries, preserving pending duplicate-load suppression, and disconnecting on route/component unmount.
   - REFACTOR command + pass: `rtk ./run.sh test && rtk ./run.sh e2e-tests` passed after removing production scroll listener orchestration and scroll-math helpers, adding behavior-unit coverage for the observer boundary, keeping the previous 200px preload distance as observer `rootMargin`, and extending the production-preview route e2e check to prove About navigation leaves no stale page-two request.
+- [x] Phase 12: CSS Masonry Layout Boundary
+  - PRE-REPLACEMENT Browser/Chromium baseline: captured on 2026-06-14 before red tests or production masonry edits while `vue-masonry` directives/plugin were still active.
+  - Desktop Home baseline at `1365x900`: 40 `.item` elements from the live page load, no horizontal overflow (`scrollWidth=clientWidth=1365`), 3 visual columns at x `138/508/878`, column density `13/14/13`, cards keep the old 350px width rhythm with roughly 20px vertical gutter between non-zero cards.
+  - Mobile Home baseline at `390x844`: 40 `.item` elements, no horizontal overflow (`scrollWidth=clientWidth=390`), 1 visual column at x `20`, 350px card width, same roughly 20px vertical rhythm.
+  - Page-two append baseline at `1365x900` with deterministic mocked Flickr pages using the current masonry path: card count grew from 20 to 23, no horizontal overflow, 3 columns with density `8/8/7`, first-page card `baseline-first-page photo 1` remained in the DOM, and appended cards `baseline-second-page photo 1..3` entered the masonry flow and were visible near the bottom.
+  - RED command + failure: `rtk ./run.sh check && rtk ./run.sh test && rtk ./run.sh e2e-tests` failed after adding the Phase 12 policy/layout checks because `package.json` still declared `vue-masonry` and `src` still contained the abandoned directive/plugin/redraw path.
+  - GREEN command + pass: `rtk ./run.sh check && rtk ./run.sh test && rtk ./run.sh e2e-tests && rtk ./run.sh build` passed after replacing the production path with a local `[data-gallery-layout="masonry"]` CSS-column boundary, removing `VueMasonryPlugin`, removing `v-masonry`/`v-masonry-tile` usage and `$redrawVueMasonry()`, and uninstalling `vue-masonry`.
+  - REFACTOR command + pass: `rtk ./run.sh check && rtk ./run.sh test && rtk ./run.sh e2e-tests && rtk ./run.sh build` passed after deleting the obsolete masonry directive test shim and moving card width/gap usage to the CSS layout boundary variables.
+  - POST-REPLACEMENT Browser/Chromium evidence: desktop `1365x900` rendered 40 `.item` elements/20 non-zero loaded cards, no horizontal overflow, 3 columns at x `138/508/878`, density `7/6/7`, 350px cards, container x `138` width `1090`, and the card spacing/size rhythm stayed at the baseline-like 350px card width with roughly 20px vertical gutter; mobile `390x844` rendered 40 `.item` elements/20 non-zero loaded cards, no horizontal overflow, 1 column at x `20`, 350px cards with the same roughly 20px rhythm; deterministic page-two append grew from 20 to 23 cards, no horizontal overflow, 3 columns with density `8/7/8`, first-page card `baseline-first-page photo 1` remained in the DOM, and appended `baseline-second-page photo 1..3` were visible in the CSS masonry flow with the same spacing rhythm.
 
 ## Working Notes
 
@@ -121,5 +130,6 @@
 - Phase 3 branch protection: remote branch protection was not applied. The user approved repository config changes only, so `.github/branch-protection.md` documents deferral until explicit approval.
 - Phase 3 review-fix addendum did not remediate dependency vulnerabilities. Phase 3 only proves the `ci/audit-vulnerabilities` gate name and command exist; high-severity audit success remains scheduled for Phase 13 and final evidence.
 - Phase 3 keeps `ci/format` only for Dependabot automerge parity with `/home/floyd/Projects/flickr-service/`; portfolio deploy and branch-protection requirements use the non-mutating `ci/check` gate.
+- Phase 12 baseline capture used the available Playwright Chromium surface after the in-app Browser plugin refused navigation twice with a browser-runtime guard. The page-two append baseline used deterministic mocked Flickr responses because the live configured photoset did not append a second page during the capture window.
 
 ## Results
