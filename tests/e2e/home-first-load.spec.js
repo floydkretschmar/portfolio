@@ -1,11 +1,13 @@
 import { expect, test } from "@playwright/test";
 
 const imageUrl = "https://images.example.test/first-load.svg";
+const displayedFallbackUrl =
+  "https://images.example.test/displayed-fallback.svg";
 const photo = {
   dateWhenTaken: "2026-06-14",
   id: "home-first-load-photo",
   picture: {
-    fallback: imageUrl,
+    fallback: displayedFallbackUrl,
     url: imageUrl,
   },
   thumbnail: {
@@ -105,6 +107,12 @@ async function mockImages(page, responseDelay = 0) {
       contentType: "image/svg+xml",
     });
   });
+  await page.route(displayedFallbackUrl, async (route) => {
+    await route.fulfill({
+      body: '<svg xmlns="http://www.w3.org/2000/svg" width="320" height="240"><rect width="320" height="240" fill="#eee"/></svg>',
+      contentType: "image/svg+xml",
+    });
+  });
 }
 
 test("Home renders mocked Flickr photos after the first loading presentation", async ({
@@ -166,5 +174,46 @@ test("Home appends page two once when bottom scrolling repeats during the pendin
   await expect(page.getByText("e2e-second-page photo 1")).toHaveCount(1);
   expect(flickr.requests.filter((pageNumber) => pageNumber === 2)).toHaveLength(
     1,
+  );
+});
+
+test("Home opens and closes a loaded image dialog without blocking the gallery", async ({
+  page,
+}) => {
+  await mockFlickr(page);
+  await mockImages(page);
+
+  await page.goto("/");
+
+  await page.getByAltText(photo.title, { exact: true }).click();
+
+  await expect(page.locator(".modal-image")).toBeVisible();
+  await expect(page.locator(".modal-image")).toHaveAttribute(
+    "alt",
+    photo.title,
+  );
+
+  await page.locator(".close-button").click();
+
+  await expect(page.locator(".modal-image")).toHaveCount(0);
+  await expect(
+    page.getByAltText("Second mocked Home first-load photo"),
+  ).toBeVisible();
+});
+
+test("Home switches to the displayed image fallback when the loaded image request fails", async ({
+  page,
+}) => {
+  await mockFlickr(page);
+  await mockImages(page);
+  await page.route(imageUrl, async (route) => {
+    await route.abort();
+  });
+
+  await page.goto("/");
+
+  await expect(page.getByAltText(photo.title, { exact: true })).toHaveAttribute(
+    "src",
+    displayedFallbackUrl,
   );
 });

@@ -31,7 +31,7 @@
 - [x] Phase 5: First Gallery Load Characterization
 - [x] Phase 6: Gallery Continuation Characterization
 - [x] Phase 7: Cache And Failed-Load Recovery
-- [ ] Phase 8: Image Card Interaction Contract
+- [x] Phase 8: Image Card Interaction Contract
 - [ ] Phase 9: Native Fetch Flickr Client
 - [ ] Phase 10: Deep Gallery Service
 - [ ] Phase 11: Observer Boundary
@@ -82,6 +82,12 @@
   - GREEN command + pass: `rtk ./run.sh test` passed with valid/expired/invalid cache restore behavior, direct cache adapter read/write/remove/invalid JSON/TTL coverage, production fresh-load persistence, and failed continuation recovery without new error UI.
   - REFACTOR command + pass: `rtk ./run.sh test` passed after consolidating local cache fixtures and removing component-side cache parsing duplication.
   - REVIEW FIX command + pass: `rtk ./run.sh test` passed after rejecting parseable but incomplete gallery snapshot data in the cache boundary and proving the fresh-load recovery path.
+- [x] Phase 8: Image card interaction contract
+  - RED command + failure: `rtk ./run.sh test -- tests/behavior/gallery/image-card.test.js` failed because the displayed card image stayed on the broken thumbnail URL instead of switching to the fixture fallback URL.
+  - GREEN command + pass: `rtk ./run.sh test -- tests/behavior/gallery/image-card.test.js` passed after adding displayed-image fallback behavior and component coverage for skeleton transition, loaded metadata, accessible image text, hover overlay, dialog open/close, and modal fallback.
+  - PLAYWRIGHT command + pass: `rtk ./run.sh e2e-tests` passed with browser coverage for clicking a loaded image to open/close the dialog and for a mocked displayed-image request failure switching to the fixture fallback URL.
+  - REFACTOR command + pass: `rtk ./run.sh test && rtk ./run.sh e2e-tests` passed after removing empty card click handlers and unused card state.
+  - REVIEW FIX command + pass: `rtk ./run.sh test -- tests/behavior/gallery/image-card.test.js && rtk ./run.sh e2e-tests` passed after using the existing service-shaped `picture.fallback` field for displayed image failures.
 
 ## Working Notes
 

@@ -1,6 +1,6 @@
 <template>
   <div v-if="!this.loaded">
-    <v-card v-masonry-tile class="item" @click="" flat>
+    <v-card v-masonry-tile class="item" flat>
       <v-skeleton-loader
         type="image"
         :height="image.thumbnail.height"
@@ -14,12 +14,12 @@
         :width="loaded ? '' : 0"
         v-masonry-tile
         class="item"
-        @click=""
         flat
         v-bind="props"
       >
         <img
           @load="loaded = true"
+          @error="$event.target.src = image.picture.fallback"
           :src="image.thumbnail.url"
           :alt="image.title"
           class="align-end image"
@@ -63,7 +63,6 @@ export default {
   props: ["image"],
   data() {
     return {
-      isExpanded: false,
       dialog: false,
       loaded: false,
     };

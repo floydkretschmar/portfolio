@@ -21,6 +21,14 @@ export const firstLoadPhotos = [
   { ...firstLoadPhoto, id: "first-load-photo-2" },
 ];
 
+export const imageCardPhoto = {
+  ...firstLoadPhoto,
+  thumbnail: {
+    height: 320,
+    url: "https://images.example.test/displayed-image.svg",
+  },
+};
+
 export function createPhotos(prefix, count) {
   return Array.from({ length: count }, (_, index) => ({
     ...firstLoadPhoto,
