@@ -6,21 +6,21 @@
 
 ## Acceptance Criteria
 
-- [ ] Home/gallery and About behavior remain visually and behaviorally equivalent to the current production experience.
-- [ ] The external Flickr service contract remains exactly `GET /photos/{photoset}?page={page}&limit={limit}`.
-- [ ] `run.sh` exposes and backs `format`, `check`, `test`, `e2e-tests`, and `build`.
-- [ ] `run.sh test` runs unit/integration tests only and enforces at least 90% line coverage for behavior-tested units.
-- [ ] Playwright e2e covers the mandatory core UI flows with deterministic mocked Flickr/image responses.
-- [ ] CI defers to `run.sh`, uses `npm ci`, and gates deploy after required validation.
-- [ ] Dependabot covers npm and GitHub Actions only, with automerge rules matching the spec.
-- [ ] `gallery-service` is extracted under the service layer with injected dependencies.
+- [x] Home/gallery and About behavior remain visually and behaviorally equivalent to the current production experience.
+- [x] The external Flickr service contract remains exactly `GET /photos/{photoset}?page={page}&limit={limit}`.
+- [x] `run.sh` exposes and backs `format`, `check`, `test`, `e2e-tests`, and `build`.
+- [x] `run.sh test` runs unit/integration tests only and enforces at least 90% line coverage for behavior-tested units.
+- [x] Playwright e2e covers the mandatory core UI flows with deterministic mocked Flickr/image responses.
+- [x] CI defers to `run.sh`, uses `npm ci`, and gates deploy after required validation.
+- [x] Dependabot covers npm and GitHub Actions only, with automerge rules matching the spec.
+- [x] `gallery-service` is extracted under the service layer with injected dependencies.
 - [x] Axios, `core-js`, TypeScript support, and the abandoned masonry dependency are removed after replacement/parity is proven.
-- [ ] Masonry is replaced with CSS-only behavior; no masonry replacement package of any kind is added, including exact-pinned package alternatives.
+- [x] Masonry is replaced with CSS-only behavior; no masonry replacement package of any kind is added, including exact-pinned package alternatives.
 - [x] README and `docs/PROJECT.md` are updated; other process docs stay untouched except tiny unavoidable corrections.
 - [x] Cleanup removes unused handlers, state, comments, styles, scaffold residue, stale config, and dead dependencies after parity is green.
 - [x] Required done evidence is green: `rtk npm ci`, `rtk ./run.sh format`, `rtk ./run.sh check`, `rtk ./run.sh test`, `rtk ./run.sh e2e-tests`, `rtk ./run.sh build`, `rtk npm audit signatures --min-release-age=0`, and `rtk npm audit --audit-level=high`.
-- [ ] Browser visual checks pass for Home/gallery and About on desktop and mobile.
-- [ ] Branch protection evidence exists on `main`, or a user-approved deferral is documented.
+- [x] Browser visual checks pass for Home/gallery and About on desktop and mobile.
+- [x] Branch protection evidence exists on `main`, or a user-approved deferral is documented.
 
 ## Phases
 
@@ -39,7 +39,7 @@
 - [x] Phase 13: Framework And JavaScript Modernization
 - [x] Phase 14: Repository Docs
 - [x] Phase 15: Final Cleanup And Parity Closure
-- [ ] Final verification
+- [x] Final verification
 
 ## TDD Slice Log (Required)
 
@@ -136,6 +136,9 @@
   - GREEN cleanup command + pass: `rtk ./run.sh check && rtk ./run.sh build` passed after deleting the empty Vuetify Sass settings file and its Vite `configFile` reference, proving the stale config was not needed by check/build.
   - REFACTOR command + pass: `rtk npm exec -- vitest run tests/behavior/router/route-shell.test.js tests/behavior/gallery/image-card.test.js && rtk ./run.sh check && rtk ./run.sh build` passed after removing empty Vue script blocks, unused header `.about` styles, and an overwritten duplicate opacity declaration.
   - FINAL command + pass: `rtk npm ci && rtk ./run.sh format && rtk ./run.sh check && rtk ./run.sh test && rtk ./run.sh e2e-tests && rtk ./run.sh build && rtk npm audit signatures --min-release-age=0 && rtk npm audit --audit-level=high` passed with 7 Node contract tests, 30 Vitest behavior tests at 100% coverage, 7 Playwright e2e tests, verified package signatures, and 0 high-severity audit findings.
+- [x] Final verification
+  - REVIEW command + pass: Final two-lens review passed across the full branch with no spec-alignment, security, behavior regression, test-quality, cleanup, CI/dependency-policy, generated-artifact, automerge-alignment, or branch-protection-deferral findings.
+  - FINAL command + pass: `rtk npm ci && rtk ./run.sh format && rtk ./run.sh check && rtk ./run.sh test && rtk ./run.sh e2e-tests && rtk ./run.sh build && rtk npm audit signatures --min-release-age=0 && rtk npm audit --audit-level=high` passed after all implementation phases and review artifacts were complete.
 
 ## Working Notes
 
