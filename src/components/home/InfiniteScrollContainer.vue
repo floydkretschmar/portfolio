@@ -114,7 +114,7 @@ export default {
         if (currentRelativeIndex < res.data.data.length) {
           this.itemList[currentIndex] = res.data.data[currentRelativeIndex];
         } else {
-          this.itemList = this.itemList.splice(0, currentIndex - 1);
+          this.itemList = this.itemList.splice(0, currentIndex);
           break;
         }
       }

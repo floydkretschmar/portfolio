@@ -21,11 +21,28 @@ export const firstLoadPhotos = [
   { ...firstLoadPhoto, id: "first-load-photo-2" },
 ];
 
+export function createPhotos(prefix, count) {
+  return Array.from({ length: count }, (_, index) => ({
+    ...firstLoadPhoto,
+    id: `${prefix}-${index + 1}`,
+    title: `${prefix} photo ${index + 1}`,
+  }));
+}
+
 export function pageOneResponse() {
   return {
     data: {
       data: firstLoadPhotos,
       totalPages: 1,
+    },
+  };
+}
+
+export function pageResponse(photos, totalPages) {
+  return {
+    data: {
+      data: photos,
+      totalPages,
     },
   };
 }

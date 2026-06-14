@@ -18,6 +18,8 @@ const photo = {
 const photos = Array.from({ length: 2 }, (_, index) => ({
   ...photo,
   id: `route-photo-${index}`,
+  title:
+    index === 0 ? "Route parity gallery photo" : "Second route parity photo",
 }));
 
 test("production preview serves Home and About routes through the SPA shell", async ({
@@ -44,7 +46,9 @@ test("production preview serves Home and About routes through the SPA shell", as
   await page.getByRole("link", { name: "Home" }).click();
 
   await expect(page).toHaveURL("/");
-  await expect(page.locator(".image-container .item img.image")).toBeVisible();
+  await expect(
+    page.getByAltText("Route parity gallery photo", { exact: true }),
+  ).toBeVisible();
 
   await page.getByRole("link", { name: "About" }).click();
 

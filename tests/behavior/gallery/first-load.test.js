@@ -6,7 +6,13 @@ import App from "../../../src/App.vue";
 import { registerPlugins } from "../../../src/plugins";
 import router from "../../../src/router";
 import config from "../../../config.js";
-import { createDeferred, firstLoadPhoto, pageOneResponse } from "./fixtures.js";
+import {
+  createDeferred,
+  createPhotos,
+  firstLoadPhoto,
+  pageOneResponse,
+  pageResponse,
+} from "./fixtures.js";
 
 const axios = vi.hoisted(() => vi.fn());
 
@@ -30,6 +36,45 @@ function nextFrame() {
 
 function resolvePageOne() {
   axios.mockResolvedValue(pageOneResponse());
+}
+
+function mockPages(pages) {
+  axios.mockImplementation(({ params }) =>
+    Promise.resolve(pageResponse(pages[params.page], pages.length - 1)),
+  );
+}
+
+function setupNearBottomScrollPosition() {
+  Object.defineProperties(document.documentElement, {
+    clientHeight: { configurable: true, value: 800 },
+  });
+  Object.defineProperties(document.body, {
+    scrollHeight: { configurable: true, value: 1200 },
+  });
+  Object.defineProperty(window, "scrollY", {
+    configurable: true,
+    value: 1000,
+  });
+}
+
+function triggerNearBottomScroll() {
+  setupNearBottomScrollPosition();
+  window.dispatchEvent(new Event("scroll"));
+}
+
+function visiblePhotoTitles() {
+  return Array.from(document.querySelectorAll(".image-container .item img"))
+    .map((image) => image.getAttribute("alt"))
+    .filter(Boolean);
+}
+
+function visibleGalleryImages() {
+  return document.querySelectorAll(".image-container .item img.image");
+}
+
+async function scrollNearBottom() {
+  triggerNearBottomScroll();
+  await nextFrame();
 }
 
 async function mountGallery({ waitForPhoto = true } = {}) {
@@ -125,4 +170,102 @@ describe("first gallery load", () => {
     );
     app.unmount();
   });
+
+  it("appends continued pages once and keeps a partial final page visible", async () => {
+    const firstPage = createPhotos("first-page", 20);
+    const finalPage = createPhotos("final-page", 3);
+    mockPages([undefined, firstPage, finalPage]);
+
+    const app = await mountGallery({ waitForPhoto: false });
+    await vi.waitFor(
+      () => {
+        expect(document.body.textContent).toContain("first-page photo 20");
+      },
+      { timeout: 1000 },
+    );
+    await scrollNearBottom();
+
+    await vi.waitFor(
+      () => {
+        expect(axios).toHaveBeenCalledTimes(2);
+      },
+      { timeout: 1000 },
+    );
+    await vi.waitFor(
+      () => {
+        expect(document.body.textContent).toContain("final-page photo 3");
+      },
+      { timeout: 1000 },
+    );
+
+    expect(axios).toHaveBeenCalledTimes(2);
+    expect(axios).toHaveBeenLastCalledWith({
+      method: "get",
+      params: {
+        limit: 20,
+        page: 2,
+      },
+      url: `${config.service_base_url}/photos/${config.photoset}`,
+    });
+    expect(visiblePhotoTitles()).toEqual([
+      ...firstPage.map((photo) => photo.title),
+      ...finalPage.map((photo) => photo.title),
+    ]);
+    expect(visibleGalleryImages()).toHaveLength(
+      firstPage.length + finalPage.length,
+    );
+
+    await scrollNearBottom();
+    expect(axios).toHaveBeenCalledTimes(2);
+    expect(visibleGalleryImages()).toHaveLength(
+      firstPage.length + finalPage.length,
+    );
+    app.unmount();
+  }, 15000);
+
+  it("ignores repeated continuation triggers while page two is pending", async () => {
+    const firstPage = createPhotos("pending-first-page", 20);
+    const secondPage = createPhotos("pending-second-page", 3);
+    const pageTwo = createDeferred();
+    axios.mockImplementation(({ params }) => {
+      if (params.page === 2) {
+        return pageTwo.promise;
+      }
+
+      return Promise.resolve(pageResponse(firstPage, 2));
+    });
+
+    const app = await mountGallery({ waitForPhoto: false });
+    await vi.waitFor(
+      () => {
+        expect(document.body.textContent).toContain(
+          "pending-first-page photo 20",
+        );
+      },
+      { timeout: 1000 },
+    );
+
+    triggerNearBottomScroll();
+    triggerNearBottomScroll();
+    await nextFrame();
+
+    expect(
+      axios.mock.calls.filter(([request]) => request.params.page === 2),
+    ).toHaveLength(1);
+
+    pageTwo.resolve(pageResponse(secondPage, 2));
+    await vi.waitFor(
+      () => {
+        expect(document.body.textContent).toContain(
+          "pending-second-page photo 3",
+        );
+      },
+      { timeout: 1000 },
+    );
+    expect(visiblePhotoTitles()).toEqual([
+      ...firstPage.map((photo) => photo.title),
+      ...secondPage.map((photo) => photo.title),
+    ]);
+    app.unmount();
+  }, 15000);
 });

@@ -29,7 +29,7 @@
 - [x] Phase 3: CI, Dependabot, And Deployment Gates
 - [x] Phase 4: Route And Production Preview Parity
 - [x] Phase 5: First Gallery Load Characterization
-- [ ] Phase 6: Gallery Continuation Characterization
+- [x] Phase 6: Gallery Continuation Characterization
 - [ ] Phase 7: Cache And Failed-Load Recovery
 - [ ] Phase 8: Image Card Interaction Contract
 - [ ] Phase 9: Native Fetch Flickr Client
@@ -74,6 +74,9 @@
 - [x] Phase 5: First gallery load characterization
   - RED command + failure: `rtk ./run.sh test` failed after adding the first Home/gallery characterization because the rendered thumbnail image had no accessible `alt` text; the failed first-page slice later failed with an unhandled Flickr rejection while skeletons remained visible.
   - GREEN command + pass: `rtk ./run.sh format && rtk ./run.sh test && rtk ./run.sh e2e-tests && rtk ./run.sh build` passed after adding local gallery fixtures, locking skeleton-before-photo behavior, first request shape, rendered photo details, no new error UI, mocked Home e2e data, delayed image skeleton behavior, thumbnail accessible text, and local failed-load recovery.
+- [x] Phase 6: Gallery continuation characterization
+  - RED command + failure: `rtk ./run.sh test && rtk ./run.sh e2e-tests` failed after adding continuation coverage because the third returned final-page photo never rendered; the existing partial-page trim removed one returned photo.
+  - GREEN command + pass: `rtk ./run.sh test && rtk ./run.sh e2e-tests` passed after fixing the final-page trim boundary and adding component/integration plus e2e coverage for page-two append, visible page-one preservation, pending duplicate-trigger suppression, and exact partial final-page rendering.
 
 ## Working Notes
 
