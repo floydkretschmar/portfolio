@@ -19,6 +19,29 @@ import { createSessionCache } from "../../../src/services/session-cache.js";
 
 const fetch = vi.hoisted(() => vi.fn());
 
+const intersectionObservers = [];
+
+class TestIntersectionObserver {
+  constructor(callback) {
+    this.callback = callback;
+    this.disconnected = false;
+    this.observedElement = null;
+    intersectionObservers.push(this);
+  }
+
+  observe(element) {
+    this.observedElement = element;
+  }
+
+  disconnect() {
+    this.disconnected = true;
+  }
+
+  intersect(isIntersecting) {
+    this.callback([{ isIntersecting, target: this.observedElement }]);
+  }
+}
+
 class TestResizeObserver {
   observe() {}
 
@@ -63,24 +86,6 @@ function flickrUrl(page) {
   return `${config.service_base_url}/photos/${config.photoset}?page=${page}&limit=20`;
 }
 
-function setupNearBottomScrollPosition() {
-  Object.defineProperties(document.documentElement, {
-    clientHeight: { configurable: true, value: 800 },
-  });
-  Object.defineProperties(document.body, {
-    scrollHeight: { configurable: true, value: 1200 },
-  });
-  Object.defineProperty(window, "scrollY", {
-    configurable: true,
-    value: 1000,
-  });
-}
-
-function triggerNearBottomScroll() {
-  setupNearBottomScrollPosition();
-  window.dispatchEvent(new Event("scroll"));
-}
-
 function cacheSnapshot(photos) {
   return {
     finalPageNumber: 1,
@@ -113,14 +118,16 @@ function visibleGalleryImages() {
   return document.querySelectorAll(".image-container .item img.image");
 }
 
-async function scrollNearBottom() {
-  triggerNearBottomScroll();
+async function triggerCurrentObserver(isIntersecting) {
+  intersectionObservers.at(-1).intersect(isIntersecting);
   await nextFrame();
 }
 
 async function mountGallery({ seedStorage, waitForPhoto = true } = {}) {
   window.fetch = fetch;
+  window.IntersectionObserver = TestIntersectionObserver;
   window.ResizeObserver = TestResizeObserver;
+  intersectionObservers.length = 0;
   sessionStorage.clear();
   seedStorage?.();
 
@@ -145,6 +152,7 @@ async function mountGallery({ seedStorage, waitForPhoto = true } = {}) {
 describe("first gallery load", () => {
   afterEach(() => {
     vi.clearAllMocks();
+    delete window.IntersectionObserver;
     delete window.fetch;
     sessionStorage.clear();
     document.body.innerHTML = "";
@@ -326,7 +334,7 @@ describe("first gallery load", () => {
       },
       { timeout: 1000 },
     );
-    await scrollNearBottom();
+    await triggerCurrentObserver(true);
 
     await vi.waitFor(
       () => {
@@ -351,12 +359,67 @@ describe("first gallery load", () => {
       firstPage.length + finalPage.length,
     );
 
-    await scrollNearBottom();
+    await triggerCurrentObserver(true);
     expect(fetch).toHaveBeenCalledTimes(2);
     expect(visibleGalleryImages()).toHaveLength(
       firstPage.length + finalPage.length,
     );
     app.unmount();
+  }, 15000);
+
+  it("loads continuation pages only from the active intersecting gallery sentinel", async () => {
+    const firstPage = createPhotos("observer-first-page", 20);
+    const secondPage = createPhotos("observer-second-page", 3);
+    const pageTwo = createDeferred();
+    fetch.mockImplementation((requestUrl) => {
+      const page = Number(new URL(requestUrl).searchParams.get("page"));
+      if (page === 2) {
+        return pageTwo.promise;
+      }
+
+      return Promise.resolve(fetchResponse(pageResponse(firstPage, 2).data));
+    });
+
+    const app = await mountGallery({ waitForPhoto: false });
+    await vi.waitFor(() => {
+      expect(document.body.textContent).toContain(
+        "observer-first-page photo 20",
+      );
+    });
+
+    expect(intersectionObservers).toHaveLength(1);
+
+    await triggerCurrentObserver(false);
+    expect(requestedPageNumbers()).toEqual([1]);
+
+    await triggerCurrentObserver(true);
+    await triggerCurrentObserver(true);
+    expect(requestedPageNumbers().filter((page) => page === 2)).toHaveLength(1);
+
+    pageTwo.resolve(fetchResponse(pageResponse(secondPage, 2).data));
+    await vi.waitFor(() => {
+      expect(document.body.textContent).toContain(
+        "observer-second-page photo 3",
+      );
+    });
+
+    await router.push("/about");
+    await nextFrame();
+    expect(intersectionObservers.at(-1).disconnected).toBe(true);
+
+    await router.push("/");
+    await nextFrame();
+    await vi.waitFor(() => {
+      expect(document.body.textContent).toContain(
+        "observer-second-page photo 3",
+      );
+    });
+
+    expect(intersectionObservers).toHaveLength(2);
+    await triggerCurrentObserver(true);
+    expect(requestedPageNumbers().filter((page) => page === 3)).toHaveLength(0);
+    app.unmount();
+    expect(intersectionObservers.at(-1).disconnected).toBe(true);
   }, 15000);
 
   it("ignores repeated continuation triggers while page two is pending", async () => {
@@ -382,8 +445,8 @@ describe("first gallery load", () => {
       { timeout: 1000 },
     );
 
-    triggerNearBottomScroll();
-    triggerNearBottomScroll();
+    await triggerCurrentObserver(true);
+    await triggerCurrentObserver(true);
     await nextFrame();
 
     expect(requestedPageNumbers().filter((page) => page === 2)).toHaveLength(1);
@@ -429,7 +492,7 @@ describe("first gallery load", () => {
       );
     });
 
-    await scrollNearBottom();
+    await triggerCurrentObserver(true);
     await vi.waitFor(() => {
       expect(requestedPageNumbers().filter((page) => page === 2)).toHaveLength(
         1,
@@ -447,7 +510,7 @@ describe("first gallery load", () => {
       /error|failed|retry|unavailable/i,
     );
 
-    await scrollNearBottom();
+    await triggerCurrentObserver(true);
     await vi.waitFor(
       () => {
         expect(

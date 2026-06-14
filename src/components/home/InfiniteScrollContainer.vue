@@ -1,17 +1,20 @@
 <template>
-  <div
-    v-masonry
-    class="image-container"
-    transition-duration="0"
-    item-selector=".item"
-    :origin-top="true"
-    :horizontal-order="true"
-    :fit-width="true"
-    gutter="20"
-  >
-    <div class="row">
-      <image-card v-for="image in itemList" :key="image.id" :image="image" />
+  <div>
+    <div
+      v-masonry
+      class="image-container"
+      transition-duration="0"
+      item-selector=".item"
+      :origin-top="true"
+      :horizontal-order="true"
+      :fit-width="true"
+      gutter="20"
+    >
+      <div class="row">
+        <image-card v-for="image in itemList" :key="image.id" :image="image" />
+      </div>
     </div>
+    <div ref="sentinel" class="gallery-sentinel" aria-hidden="true"></div>
   </div>
 </template>
 
@@ -19,6 +22,7 @@
 import ImageCard from "@/components/home/ImageCard.vue";
 import { createFlickrClient } from "@/services/flickr-client.js";
 import { createGalleryService } from "@/services/gallery-service.js";
+import { createObserverBoundary } from "@/services/observer-boundary.js";
 import { createSessionCache } from "@/services/session-cache.js";
 import config from "../../../config.js";
 
@@ -31,6 +35,7 @@ export default {
     canLoadMore: true,
     finalPageNumber: -1,
     gallery: null,
+    observerBoundary: null,
     isLoading: false,
     itemList: [],
   }),
@@ -44,17 +49,15 @@ export default {
 
     // cache was empty or freshly invalidated -> treat as new page load
     if (data.finalPageNumber === -1) {
-      this.load().then(() => {
-        window.addEventListener("scroll", this.handleScroll);
-      });
-    }
-    // restore cached data and add window handler
-    else {
-      window.addEventListener("scroll", this.handleScroll);
+      this.load();
     }
   },
+  mounted() {
+    this.observerBoundary = this.createObserverBoundary();
+    this.observerBoundary.observe(this.$refs.sentinel);
+  },
   beforeUnmount() {
-    window.removeEventListener("scroll", this.handleScroll);
+    this.observerBoundary?.disconnect();
   },
   methods: {
     applySnapshot(snapshot) {
@@ -87,23 +90,22 @@ export default {
         },
       });
     },
-    async handleScroll() {
-      let scrollHeight = window.scrollY;
-      let maxHeight =
-        window.document.body.scrollHeight -
-        window.document.documentElement.clientHeight;
-
-      if (
-        scrollHeight >= maxHeight - 200 &&
-        this.finalPageNumber !== -1 &&
-        this.canLoadMore &&
-        !this.isLoading
-      ) {
-        this.isLoading = true;
-        this.load().then(() => {
-          this.$redrawVueMasonry();
-        });
+    createObserverBoundary() {
+      return createObserverBoundary({
+        IntersectionObserver: window.IntersectionObserver,
+        onIntersect: this.requestLoadMore,
+        rootMargin: "200px 0px",
+      });
+    },
+    requestLoadMore() {
+      if (this.finalPageNumber === -1 || !this.canLoadMore || this.isLoading) {
+        return;
       }
+
+      this.isLoading = true;
+      this.load().then(() => {
+        this.$redrawVueMasonry();
+      });
     },
     async load() {
       const snapshot = await this.gallery.loadNext();
@@ -121,6 +123,10 @@ export default {
 .image-container {
   margin: auto;
   position: relative;
+}
+
+.gallery-sentinel {
+  block-size: 1px;
 }
 
 ::v-deep(.v-skeleton-loader) > * {

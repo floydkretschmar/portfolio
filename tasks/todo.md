@@ -34,7 +34,7 @@
 - [x] Phase 8: Image Card Interaction Contract
 - [x] Phase 9: Native Fetch Flickr Client
 - [x] Phase 10: Deep Gallery Service
-- [ ] Phase 11: Observer Boundary
+- [x] Phase 11: Observer Boundary
 - [ ] Phase 12: CSS Masonry Layout Boundary
 - [ ] Phase 13: Framework And JavaScript Modernization
 - [ ] Phase 14: Repository Docs
@@ -109,6 +109,10 @@
   - RED command + failure: `rtk ./run.sh test` failed after `src/services/gallery-service.js` was added to behavior-unit coverage and branch coverage was enforced; the report showed gallery service branch coverage at 95.83% with the missing branch on title fallback normalization.
   - GREEN command + pass: `rtk ./run.sh test` passed with 100% statements, branches, functions, and lines after adding the untitled raw-photo normalization behavior case.
   - REFACTOR command + pass: `rtk ./run.sh test` passed after trimming duplicated snapshot state from the component, consuming snapshot alt text in `ImageCard`, removing duplicate continuation snapshot application, cleaning up the scroll listener on unmount, and documenting the gallery contracts with JSDoc.
+- [x] Phase 11: Observer Boundary
+  - RED command + failure: `rtk ./run.sh test && rtk ./run.sh e2e-tests` failed after adding the active-gallery observer sentinel behavior because the mounted Home gallery created zero `IntersectionObserver` instances; the old scroll-listener implementation also leaked a failed mounted app into the next continuation test when the new RED assertion stopped before cleanup.
+  - GREEN command + pass: `rtk ./run.sh test && rtk ./run.sh e2e-tests` passed after wiring Home to an injectable native observer boundary, observing the production sentinel, requesting gallery continuation only on intersecting entries, preserving pending duplicate-load suppression, and disconnecting on route/component unmount.
+  - REFACTOR command + pass: `rtk ./run.sh test && rtk ./run.sh e2e-tests` passed after removing production scroll listener orchestration and scroll-math helpers, adding behavior-unit coverage for the observer boundary, keeping the previous 200px preload distance as observer `rootMargin`, and extending the production-preview route e2e check to prove About navigation leaves no stale page-two request.
 
 ## Working Notes
 

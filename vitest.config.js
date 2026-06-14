@@ -11,6 +11,7 @@ export default mergeConfig(
         include: [
           "src/services/flickr-client.js",
           "src/services/gallery-service.js",
+          "src/services/observer-boundary.js",
         ],
         provider: "v8",
         reportsDirectory: "coverage/behavior-unit",

@@ -25,15 +25,17 @@ const photos = Array.from({ length: 2 }, (_, index) => ({
 test("production preview serves Home and About routes through the SPA shell", async ({
   page,
 }) => {
-  await page.route("https://flickr-service.fly.dev/photos/**", (route) =>
-    route.fulfill({
+  const requests = [];
+  await page.route("https://flickr-service.fly.dev/photos/**", (route) => {
+    requests.push(new URL(route.request().url()).searchParams.get("page"));
+    return route.fulfill({
       contentType: "application/json",
       json: {
         data: photos,
         totalPages: 1,
       },
-    }),
-  );
+    });
+  });
 
   await page.goto("/about");
 
@@ -54,4 +56,5 @@ test("production preview serves Home and About routes through the SPA shell", as
 
   await expect(page).toHaveURL("/about");
   await expect(page.getByText("Welcome.")).toBeVisible();
+  expect(requests).toEqual(["1"]);
 });

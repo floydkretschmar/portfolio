@@ -27,6 +27,14 @@ const photos = Array.from({ length: 2 }, (_, index) => ({
   id: `route-photo-${index}`,
 }));
 
+class TestIntersectionObserver {
+  constructor() {}
+
+  observe() {}
+
+  disconnect() {}
+}
+
 class TestResizeObserver {
   observe() {}
 
@@ -50,6 +58,7 @@ async function waitForText(text) {
 async function renderAppAt(path) {
   document.body.innerHTML = '<div id="app"></div>';
   window.history.pushState({}, "", path);
+  window.IntersectionObserver = TestIntersectionObserver;
   window.ResizeObserver = TestResizeObserver;
 
   window.fetch = fetch.mockResolvedValue({
@@ -73,6 +82,7 @@ async function renderAppAt(path) {
 describe("route shell", () => {
   afterEach(() => {
     vi.clearAllMocks();
+    delete window.IntersectionObserver;
     delete window.fetch;
     document.body.innerHTML = "";
   });
