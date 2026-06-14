@@ -27,7 +27,7 @@
 - [x] Phase 1: Truthful Local Validation
 - [x] Phase 2: Reproducible Runtime Baseline
 - [x] Phase 3: CI, Dependabot, And Deployment Gates
-- [ ] Phase 4: Route And Production Preview Parity
+- [x] Phase 4: Route And Production Preview Parity
 - [ ] Phase 5: First Gallery Load Characterization
 - [ ] Phase 6: Gallery Continuation Characterization
 - [ ] Phase 7: Cache And Failed-Load Recovery
@@ -67,6 +67,10 @@
 - [x] Phase 3 review-fix addendum: non-mutating required checks
   - RED command + failure: spec review found `ci/format` was being promoted into branch-protection and deploy-required checks even though the scheme requires non-mutating `ci/check`; the automerge workflow still needs `ci/format` to remain structurally aligned with the Flickr service reference.
   - GREEN command + pass: `rtk node --test tests/run-contract.test.js` passed after deploy and branch-protection policy rejected requiring `ci/format` while preserving it in the automerge required-check list.
+- [x] Phase 4: Route and production preview parity
+  - RED command + failure: `rtk ./run.sh test` failed because the real app/bootstrap route smoke could not parse `src/App.vue` without the Vite Vue transform; `rtk ./run.sh e2e-tests` failed because the new production-preview route flow had no preview `baseURL`.
+  - GREEN command + pass: `rtk ./run.sh test && rtk ./run.sh e2e-tests && rtk ./run.sh build` passed after reusing Vite config in Vitest, switching router history to `import.meta.env.BASE_URL`, removing the obsolete `process.env` Vite shim, and running Playwright against a fresh built preview with deterministic Flickr route data.
+  - Browser visual check: built preview on `127.0.0.1:4174` passed for Home and direct `/about` at 1280x720 and 390x844 with deterministic Flickr data; headers, gallery image, About copy, root URLs, and no horizontal overflow were confirmed, with zero console errors during the mocked visual pass.
 
 ## Working Notes
 

@@ -1,20 +1,20 @@
 # Review Report
 
-**Date:** 2026-06-14 18:58 (local)
+**Date:** 2026-06-14 19:31 (local)
 **Base Branch:** main
 **Commit Range:** 33e3e03eee94fbb17ca7f0e6b7f6a3449864136c...HEAD
 **Reviewer Mode:** Independent two-lens (spec/scope + quality/risk)
 
 ## Diff Scope
 
-- Files changed: 8
+- Files changed: 7
 - Key areas:
-  - /home/floyd/Projects/portfolio/.github/workflows/ci.yml
-  - /home/floyd/Projects/portfolio/.github/workflows/dependabot-automerge.yml
-  - /home/floyd/Projects/portfolio/.github/dependabot.yml
-  - /home/floyd/Projects/portfolio/.github/branch-protection.md
-  - /home/floyd/Projects/portfolio/scripts/check-repository-policy.js
-  - /home/floyd/Projects/portfolio/tests/run-contract.test.js
+  - /home/floyd/Projects/portfolio/src/router/index.js
+  - /home/floyd/Projects/portfolio/vite.config.js
+  - /home/floyd/Projects/portfolio/vitest.config.js
+  - /home/floyd/Projects/portfolio/playwright.config.js
+  - /home/floyd/Projects/portfolio/tests/behavior/router/route-shell.test.js
+  - /home/floyd/Projects/portfolio/tests/e2e/route-preview.spec.js
   - /home/floyd/Projects/portfolio/tasks/todo.md
 
 ## Spec/Scope Review
@@ -23,7 +23,7 @@
 
 ### Findings
 
-- [none] N/A - No blocking findings. Automerge is structurally identical to /home/floyd/Projects/flickr-service/.github/workflows/dependabot-automerge.yml after normalizing for the single intended npm security patch allowance. The `ci/format` check remains only for automerge parity, while deploy and branch-protection required checks use non-mutating `ci/check`.
+- [info] N/A - No spec compliance issues found for uncommitted Phase 4 changes after 19dae87. Phase 4 changes map cleanly to Vite-native router base handling, production preview on 4174, direct `/about` preview coverage, Home/About shell navigation, deterministic Flickr route data, and recorded Browser visual evidence.
 
 ## Code Quality/Risk Review
 
@@ -31,7 +31,7 @@
 
 ### Findings
 
-- [none] N/A - No blocking spec-alignment, security, test-quality, maintainability, or refactoring findings. The privileged automerge workflow has no checkout, policy tests cover checkout rejection, and mechanical comparison with the reference workflow shows only the intended npm `security-update:semver-patch` allowance.
+- [none] N/A - No spec-alignment, production-risk, security, data integrity, test-quality, maintainability, dead-code, or missing-refactor issues found in the Phase 4 uncommitted diff after 19dae87.
 
 ## Final Verdict
 
