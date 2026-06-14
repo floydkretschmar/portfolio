@@ -19,6 +19,7 @@
 <script>
 import ApiService from "@/services/ApiService.ts";
 import ImageCard from "@/components/home/ImageCard.vue";
+import { createSessionCache } from "@/services/session-cache.js";
 import config from "../../../config.js";
 
 const apiService = new ApiService();
@@ -55,22 +56,18 @@ export default {
   },
   methods: {
     getCachedData() {
-      const homeCache = sessionStorage.getItem("home-data");
-      if (homeCache) {
-        const cache = JSON.parse(homeCache);
-        if (
-          Date.now().valueOf() <
-          cache.timestamp.valueOf() + config.cache_ttl_ms >
-          0
-        ) {
-          // cache is still valid so return cached data
-          return cache.data;
-        } else {
-          // cache has timed out so remove from storage
-          sessionStorage.removeItem("home-data");
-        }
+      const cached = this.cache().read();
+      if (cached.value) {
+        return cached.value;
       }
       return this.$data;
+    },
+    cache() {
+      return createSessionCache({
+        now: Date.now,
+        storage: sessionStorage,
+        ttlMs: config.cache_ttl_ms,
+      });
     },
     async handleScroll() {
       let scrollHeight = window.scrollY;
@@ -121,10 +118,7 @@ export default {
       this.pageNumber++;
       this.finalPageNumber = res.data.totalPages;
       this.isLoading = false;
-      sessionStorage.setItem(
-        "home-data",
-        JSON.stringify({ data: this.$data, timestamp: Date.now() }),
-      );
+      this.cache().write(this.$data);
     },
     generateRandomInteger(min, max) {
       return Math.floor(min + Math.random() * (max - min + 1));

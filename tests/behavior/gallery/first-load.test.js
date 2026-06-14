@@ -10,9 +10,11 @@ import {
   createDeferred,
   createPhotos,
   firstLoadPhoto,
+  firstLoadPhotos,
   pageOneResponse,
   pageResponse,
 } from "./fixtures.js";
+import { createSessionCache } from "../../../src/services/session-cache.js";
 
 const axios = vi.hoisted(() => vi.fn());
 
@@ -62,6 +64,28 @@ function triggerNearBottomScroll() {
   window.dispatchEvent(new Event("scroll"));
 }
 
+function cacheSnapshot(photos) {
+  return {
+    finalPageNumber: 1,
+    isLoading: false,
+    itemList: photos,
+    pageCount: 20,
+    pageNumber: 2,
+  };
+}
+
+function cacheAdapter({ now = () => Date.now() } = {}) {
+  return createSessionCache({
+    now,
+    storage: sessionStorage,
+    ttlMs: config.cache_ttl_ms,
+  });
+}
+
+function seedCachedPhotos(photos, options) {
+  cacheAdapter(options).write(cacheSnapshot(photos));
+}
+
 function visiblePhotoTitles() {
   return Array.from(document.querySelectorAll(".image-container .item img"))
     .map((image) => image.getAttribute("alt"))
@@ -77,9 +101,10 @@ async function scrollNearBottom() {
   await nextFrame();
 }
 
-async function mountGallery({ waitForPhoto = true } = {}) {
+async function mountGallery({ seedStorage, waitForPhoto = true } = {}) {
   window.ResizeObserver = TestResizeObserver;
   sessionStorage.clear();
+  seedStorage?.();
 
   document.body.innerHTML = '<div id="app"></div>';
   window.history.pushState({}, "", "/");
@@ -167,6 +192,102 @@ describe("first gallery load", () => {
     ).toBeNull();
     expect(document.body.textContent).not.toMatch(
       /error|failed|retry|unavailable/i,
+    );
+    app.unmount();
+  });
+
+  it("recovers from corrupted cached gallery data by requesting a fresh first page", async () => {
+    resolvePageOne();
+
+    const app = await mountGallery({
+      seedStorage: () => {
+        sessionStorage.setItem("home-data", "not json");
+      },
+    });
+
+    expect(document.body.textContent).toContain(firstLoadPhoto.title);
+    expect(axios).toHaveBeenCalledWith({
+      method: "get",
+      params: {
+        limit: 20,
+        page: 1,
+      },
+      url: `${config.service_base_url}/photos/${config.photoset}`,
+    });
+    app.unmount();
+  });
+
+  it("recovers from incomplete cached gallery data by requesting a fresh first page", async () => {
+    resolvePageOne();
+
+    const app = await mountGallery({
+      seedStorage: () => {
+        sessionStorage.setItem(
+          "home-data",
+          JSON.stringify({ data: { itemList: [] }, timestamp: Date.now() }),
+        );
+      },
+    });
+
+    expect(document.body.textContent).toContain(firstLoadPhoto.title);
+    expect(axios).toHaveBeenCalledWith({
+      method: "get",
+      params: {
+        limit: 20,
+        page: 1,
+      },
+      url: `${config.service_base_url}/photos/${config.photoset}`,
+    });
+    app.unmount();
+  });
+
+  it("restores valid cached photos without waiting for the first network page", async () => {
+    const cachedPhotos = createPhotos("cached-page", 2);
+    const app = await mountGallery({
+      seedStorage: () => {
+        seedCachedPhotos(cachedPhotos);
+      },
+      waitForPhoto: false,
+    });
+
+    expect(visiblePhotoTitles()).toEqual(
+      cachedPhotos.map((photo) => photo.title),
+    );
+    expect(axios).not.toHaveBeenCalled();
+    app.unmount();
+  });
+
+  it("ignores expired cached photos and requests a fresh first page", async () => {
+    resolvePageOne();
+
+    const app = await mountGallery({
+      seedStorage: () => {
+        seedCachedPhotos(createPhotos("expired-page", 1), {
+          now: () => Date.now() - config.cache_ttl_ms - 1,
+        });
+      },
+    });
+
+    expect(document.body.textContent).toContain(firstLoadPhoto.title);
+    expect(axios).toHaveBeenCalledWith({
+      method: "get",
+      params: {
+        limit: 20,
+        page: 1,
+      },
+      url: `${config.service_base_url}/photos/${config.photoset}`,
+    });
+    app.unmount();
+  });
+
+  it("persists a successful fresh first page through the production cache boundary", async () => {
+    resolvePageOne();
+
+    const app = await mountGallery();
+    const cached = cacheAdapter().read();
+
+    expect(cached.value.itemList.slice(0, firstLoadPhotos.length)).toEqual(
+      firstLoadPhotos,
     );
     app.unmount();
   });
@@ -268,4 +389,65 @@ describe("first gallery load", () => {
     ]);
     app.unmount();
   }, 15000);
+
+  it("clears pending state after a failed continuation load so a future load can proceed without new error UI", async () => {
+    const firstPage = createPhotos("recoverable-first-page", 20);
+    const secondPage = createPhotos("recoverable-second-page", 3);
+    let pageTwoFailed = false;
+    axios.mockImplementation(({ params }) => {
+      if (params.page === 2 && !pageTwoFailed) {
+        pageTwoFailed = true;
+        return Promise.reject(new Error("Flickr unavailable"));
+      }
+
+      return Promise.resolve(
+        pageResponse(params.page === 1 ? firstPage : secondPage, 2),
+      );
+    });
+
+    const app = await mountGallery({ waitForPhoto: false });
+    await vi.waitFor(() => {
+      expect(document.body.textContent).toContain(
+        "recoverable-first-page photo 20",
+      );
+    });
+
+    await scrollNearBottom();
+    await vi.waitFor(() => {
+      expect(
+        axios.mock.calls.filter(([request]) => request.params.page === 2),
+      ).toHaveLength(1);
+    });
+    await nextFrame();
+
+    expect(
+      document.querySelectorAll(".v-skeleton-loader").length,
+    ).toBeGreaterThan(0);
+    expect(
+      document.querySelector(".v-alert, .v-snackbar, .v-banner, .retry-panel"),
+    ).toBeNull();
+    expect(document.body.textContent).not.toMatch(
+      /error|failed|retry|unavailable/i,
+    );
+
+    await scrollNearBottom();
+    await vi.waitFor(
+      () => {
+        expect(
+          axios.mock.calls.filter(([request]) => request.params.page === 2),
+        ).toHaveLength(2);
+      },
+      { timeout: 1000 },
+    );
+    await vi.waitFor(() => {
+      expect(document.body.textContent).toContain(
+        "recoverable-second-page photo 3",
+      );
+    });
+    expect(visiblePhotoTitles()).toEqual([
+      ...firstPage.map((photo) => photo.title),
+      ...secondPage.map((photo) => photo.title),
+    ]);
+    app.unmount();
+  }, 30000);
 });

@@ -30,7 +30,7 @@
 - [x] Phase 4: Route And Production Preview Parity
 - [x] Phase 5: First Gallery Load Characterization
 - [x] Phase 6: Gallery Continuation Characterization
-- [ ] Phase 7: Cache And Failed-Load Recovery
+- [x] Phase 7: Cache And Failed-Load Recovery
 - [ ] Phase 8: Image Card Interaction Contract
 - [ ] Phase 9: Native Fetch Flickr Client
 - [ ] Phase 10: Deep Gallery Service
@@ -77,6 +77,11 @@
 - [x] Phase 6: Gallery continuation characterization
   - RED command + failure: `rtk ./run.sh test && rtk ./run.sh e2e-tests` failed after adding continuation coverage because the third returned final-page photo never rendered; the existing partial-page trim removed one returned photo.
   - GREEN command + pass: `rtk ./run.sh test && rtk ./run.sh e2e-tests` passed after fixing the final-page trim boundary and adding component/integration plus e2e coverage for page-two append, visible page-one preservation, pending duplicate-trigger suppression, and exact partial final-page rendering.
+- [x] Phase 7: Cache and failed-load recovery
+  - RED command + failure: `rtk ./run.sh test` failed because corrupted `home-data` threw during gallery creation, incomplete cache data crashed before a fresh load, and the new cache adapter contract did not exist.
+  - GREEN command + pass: `rtk ./run.sh test` passed with valid/expired/invalid cache restore behavior, direct cache adapter read/write/remove/invalid JSON/TTL coverage, production fresh-load persistence, and failed continuation recovery without new error UI.
+  - REFACTOR command + pass: `rtk ./run.sh test` passed after consolidating local cache fixtures and removing component-side cache parsing duplication.
+  - REVIEW FIX command + pass: `rtk ./run.sh test` passed after rejecting parseable but incomplete gallery snapshot data in the cache boundary and proving the fresh-load recovery path.
 
 ## Working Notes
 
