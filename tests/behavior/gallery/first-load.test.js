@@ -13,6 +13,7 @@ import {
   firstLoadPhotos,
   pageOneResponse,
   pageResponse,
+  transparentImage,
 } from "./fixtures.js";
 import { createSessionCache } from "../../../src/services/session-cache.js";
 
@@ -168,6 +169,36 @@ describe("first gallery load", () => {
     app.unmount();
   });
 
+  it("renders raw Flickr photo fields through the gallery snapshot service", async () => {
+    fetch.mockResolvedValue(
+      fetchResponse({
+        data: [
+          {
+            date: "2026-06-14",
+            fallbackUrl: transparentImage,
+            fullImageUrl: transparentImage,
+            id: "raw-home-photo",
+            thumbnailHeight: 320,
+            thumbnailUrl: transparentImage,
+            title: "Raw Home photo",
+            views: 7,
+          },
+        ],
+        totalPages: 1,
+      }),
+    );
+
+    const app = await mountGallery({ waitForPhoto: false });
+
+    await vi.waitFor(() => {
+      expect(document.body.textContent).toContain("Raw Home photo");
+    });
+    expect(document.body.textContent).toContain("2026-06-14");
+    expect(document.body.textContent).toContain("Views: 7");
+    expect(document.querySelector('img[alt="Raw Home photo"]')).not.toBeNull();
+    app.unmount();
+  });
+
   it("shows skeleton cards before a delayed first page resolves", async () => {
     const pageOne = createDeferred();
     fetch.mockReturnValue(pageOne.promise);
@@ -278,7 +309,7 @@ describe("first gallery load", () => {
     const cached = cacheAdapter().read();
 
     expect(cached.value.itemList.slice(0, firstLoadPhotos.length)).toEqual(
-      firstLoadPhotos,
+      firstLoadPhotos.map((photo) => ({ ...photo, alt: photo.title })),
     );
     app.unmount();
   });

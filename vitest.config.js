@@ -8,11 +8,15 @@ export default mergeConfig(
     test: {
       coverage: {
         all: true,
-        include: ["src/services/flickr-client.js"],
+        include: [
+          "src/services/flickr-client.js",
+          "src/services/gallery-service.js",
+        ],
         provider: "v8",
         reportsDirectory: "coverage/behavior-unit",
         reporter: ["text"],
         thresholds: {
+          branches: 100,
           lines: 90,
         },
       },

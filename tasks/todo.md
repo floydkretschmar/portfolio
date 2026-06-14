@@ -33,7 +33,7 @@
 - [x] Phase 7: Cache And Failed-Load Recovery
 - [x] Phase 8: Image Card Interaction Contract
 - [x] Phase 9: Native Fetch Flickr Client
-- [ ] Phase 10: Deep Gallery Service
+- [x] Phase 10: Deep Gallery Service
 - [ ] Phase 11: Observer Boundary
 - [ ] Phase 12: CSS Masonry Layout Boundary
 - [ ] Phase 13: Framework And JavaScript Modernization
@@ -93,6 +93,22 @@
   - RED command + failure: `rtk ./run.sh test && rtk ./run.sh e2e-tests` failed because Home still used the Axios path and the native `fetch` spy received zero calls for `/photos/{photoset}?page=1&limit=20`.
   - GREEN command + pass: `rtk ./run.sh test && rtk ./run.sh e2e-tests && rtk ./run.sh build` passed after wiring Home to the injected native-fetch Flickr client, preserving visible gallery behavior, covering non-OK/invalid JSON/missing fetch failures, deleting the old TypeScript service surface, and removing Axios.
   - REFACTOR command + pass: `rtk ./run.sh format && rtk ./run.sh test && rtk ./run.sh e2e-tests && rtk ./run.sh build` passed after replacing the stale behavior-unit coverage include with `src/services/flickr-client.js`.
+- [x] Phase 10: Deep Gallery Service
+  - RED command + failure: `rtk ./run.sh test -- tests/behavior/services/gallery-service.test.js` failed because `src/services/gallery-service.js` did not exist for the new DOM-free gallery snapshot service behavior.
+  - GREEN command + pass: `rtk ./run.sh test -- tests/behavior/services/gallery-service.test.js` passed after `restore()` returned a deterministic renderable skeleton snapshot using injected cache, page-size, and placeholder boundaries.
+  - RED command + failure: `rtk ./run.sh test -- tests/behavior/services/gallery-service.test.js` failed because `service.loadNext` did not exist for first-page loading and normalization.
+  - GREEN command + pass: `rtk ./run.sh test -- tests/behavior/services/gallery-service.test.js` passed after `loadNext()` requested the injected Flickr client with injected page size, normalized raw page data into renderable card fields, advanced pagination, and wrote the snapshot through the injected cache.
+  - RED command + failure: `rtk ./run.sh test -- tests/behavior/services/gallery-service.test.js` failed because a repeated `loadNext()` while the first request was pending issued a duplicate Flickr request.
+  - GREEN command + pass: `rtk ./run.sh test -- tests/behavior/services/gallery-service.test.js` passed after the service guarded pending loads and returned the current renderable loading snapshot without duplicate requests.
+  - RED command + failure: `rtk ./run.sh test -- tests/behavior/services/gallery-service.test.js` failed because a rejected Flickr request escaped from `loadNext()` instead of preserving the current visible failed-load snapshot.
+  - GREEN command + pass: `rtk ./run.sh test -- tests/behavior/services/gallery-service.test.js` passed after request failures cleared pending state, skipped cache writes, preserved the current renderable snapshot, and allowed a later load to succeed.
+  - RED command + failure: `rtk ./run.sh test -- tests/behavior/services/gallery-service.test.js` failed because cached final-page snapshots were restored as load-eligible.
+  - GREEN command + pass: `rtk ./run.sh test -- tests/behavior/services/gallery-service.test.js` passed after restore derived load eligibility from cached pagination state.
+  - RED command + failure: `rtk ./run.sh test -- tests/behavior/gallery/first-load.test.js` failed because Home still passed raw Flickr fields directly to `ImageCard`, causing `image.thumbnail.height` to be missing and the raw photo not to render.
+  - GREEN command + pass: `rtk ./run.sh test -- tests/behavior/gallery/first-load.test.js` passed after Home consumed gallery service snapshots, page size moved to injected config, component-side pagination/cache logic was removed, and the synchronous scroll guard preserved characterized continuation behavior.
+  - RED command + failure: `rtk ./run.sh test` failed after `src/services/gallery-service.js` was added to behavior-unit coverage and branch coverage was enforced; the report showed gallery service branch coverage at 95.83% with the missing branch on title fallback normalization.
+  - GREEN command + pass: `rtk ./run.sh test` passed with 100% statements, branches, functions, and lines after adding the untitled raw-photo normalization behavior case.
+  - REFACTOR command + pass: `rtk ./run.sh test` passed after trimming duplicated snapshot state from the component, consuming snapshot alt text in `ImageCard`, removing duplicate continuation snapshot application, cleaning up the scroll listener on unmount, and documenting the gallery contracts with JSDoc.
 
 ## Working Notes
 

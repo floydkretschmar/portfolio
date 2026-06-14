@@ -21,7 +21,7 @@
           @load="loaded = true"
           @error="$event.target.src = image.picture.fallback"
           :src="image.thumbnail.url"
-          :alt="image.title"
+          :alt="image.alt || image.title"
           class="align-end image"
         />
         <v-card-title
@@ -47,7 +47,7 @@
               class="modal-image"
               :src="image.picture.url"
               @error="$event.target.src = image.picture.fallback"
-              :alt="image.title"
+              :alt="image.alt || image.title"
             />
             <span class="close-button" @click="dialog = false">&times;</span>
           </v-card>

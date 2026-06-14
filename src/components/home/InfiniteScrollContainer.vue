@@ -1,5 +1,4 @@
 <template>
-  <!-- <skeleton-container v-if="this.initialLoad"></skeleton-container> -->
   <div
     v-masonry
     class="image-container"
@@ -19,6 +18,7 @@
 <script>
 import ImageCard from "@/components/home/ImageCard.vue";
 import { createFlickrClient } from "@/services/flickr-client.js";
+import { createGalleryService } from "@/services/gallery-service.js";
 import { createSessionCache } from "@/services/session-cache.js";
 import config from "../../../config.js";
 
@@ -28,48 +28,63 @@ const flickrClient = createFlickrClient({
 });
 export default {
   data: () => ({
-    itemList: [],
-    pageNumber: 1,
+    canLoadMore: true,
     finalPageNumber: -1,
-    pageCount: 20,
+    gallery: null,
     isLoading: false,
+    itemList: [],
   }),
   components: {
     ImageCard,
   },
   created() {
-    this.addSkeletonImagesToList();
-    const data = this.getCachedData();
+    this.gallery = this.createGallery();
+    const data = this.gallery.restore();
+    this.applySnapshot(data);
 
     // cache was empty or freshly invalidated -> treat as new page load
     if (data.finalPageNumber === -1) {
-      this.isLoading = true;
       this.load().then(() => {
         window.addEventListener("scroll", this.handleScroll);
       });
     }
     // restore cached data and add window handler
     else {
-      this.finalPageNumber = data.finalPageNumber;
-      this.pageNumber = data.pageNumber;
-      this.pageCount = data.pageCount;
-      this.itemList = data.itemList;
       window.addEventListener("scroll", this.handleScroll);
     }
   },
+  beforeUnmount() {
+    window.removeEventListener("scroll", this.handleScroll);
+  },
   methods: {
-    getCachedData() {
-      const cached = this.cache().read();
-      if (cached.value) {
-        return cached.value;
-      }
-      return this.$data;
+    applySnapshot(snapshot) {
+      this.canLoadMore = snapshot.canLoadMore;
+      this.finalPageNumber = snapshot.finalPageNumber;
+      this.isLoading = snapshot.isLoading;
+      this.itemList = snapshot.itemList;
     },
     cache() {
       return createSessionCache({
         now: Date.now,
         storage: sessionStorage,
         ttlMs: config.cache_ttl_ms,
+      });
+    },
+    createGallery() {
+      return createGalleryService({
+        cache: this.cache(),
+        flickrClient,
+        pageSize: config.gallery_page_size,
+        placeholder: {
+          create: (index) => ({
+            id: `skeleton-${index}`,
+            loaded: false,
+            thumbnail: {
+              // Do some random height between 200 and 700 for the image skeleton loader
+              height: 400 + this.generateRandomInteger(-200, 200),
+            },
+          }),
+        },
       });
     },
     async handleScroll() {
@@ -80,62 +95,23 @@ export default {
 
       if (
         scrollHeight >= maxHeight - 200 &&
-        this.pageNumber <= this.finalPageNumber &&
+        this.finalPageNumber !== -1 &&
+        this.canLoadMore &&
         !this.isLoading
       ) {
         this.isLoading = true;
         this.load().then(() => {
           this.$redrawVueMasonry();
         });
-        this.addSkeletonImagesToList();
       }
     },
     async load() {
-      const res = await flickrClient
-        .fetchPage(this.pageNumber, this.pageCount)
-        .catch(() => {
-          this.isLoading = false;
-          return null;
-        });
-
-      if (!res) {
-        return;
-      }
-
-      const startIndex = (this.pageNumber - 1) * this.pageCount;
-      const endIndex = this.pageNumber * this.pageCount;
-      for (
-        let currentIndex = startIndex;
-        currentIndex < endIndex;
-        currentIndex++
-      ) {
-        const currentRelativeIndex = currentIndex - startIndex;
-
-        if (currentRelativeIndex < res.data.data.length) {
-          this.itemList[currentIndex] = res.data.data[currentRelativeIndex];
-        } else {
-          this.itemList = this.itemList.splice(0, currentIndex);
-          break;
-        }
-      }
-      this.pageNumber++;
-      this.finalPageNumber = res.data.totalPages;
-      this.isLoading = false;
-      this.cache().write(this.$data);
+      const snapshot = await this.gallery.loadNext();
+      this.applySnapshot(snapshot);
+      return snapshot;
     },
     generateRandomInteger(min, max) {
       return Math.floor(min + Math.random() * (max - min + 1));
-    },
-    addSkeletonImagesToList() {
-      for (let i = 0; i < this.pageCount; i++) {
-        this.itemList.push({
-          loaded: false,
-          thumbnail: {
-            // Do some random height between 200 and 700 for the image skeleton loader
-            height: 400 + this.generateRandomInteger(-200, 200),
-          },
-        });
-      }
     },
   },
 };
