@@ -21,6 +21,7 @@
         <img
           @load="loaded = true"
           :src="image.thumbnail.url"
+          :alt="image.title"
           class="align-end image"
         />
         <v-card-title

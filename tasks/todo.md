@@ -28,7 +28,7 @@
 - [x] Phase 2: Reproducible Runtime Baseline
 - [x] Phase 3: CI, Dependabot, And Deployment Gates
 - [x] Phase 4: Route And Production Preview Parity
-- [ ] Phase 5: First Gallery Load Characterization
+- [x] Phase 5: First Gallery Load Characterization
 - [ ] Phase 6: Gallery Continuation Characterization
 - [ ] Phase 7: Cache And Failed-Load Recovery
 - [ ] Phase 8: Image Card Interaction Contract
@@ -71,6 +71,9 @@
   - RED command + failure: `rtk ./run.sh test` failed because the real app/bootstrap route smoke could not parse `src/App.vue` without the Vite Vue transform; `rtk ./run.sh e2e-tests` failed because the new production-preview route flow had no preview `baseURL`.
   - GREEN command + pass: `rtk ./run.sh test && rtk ./run.sh e2e-tests && rtk ./run.sh build` passed after reusing Vite config in Vitest, switching router history to `import.meta.env.BASE_URL`, removing the obsolete `process.env` Vite shim, and running Playwright against a fresh built preview with deterministic Flickr route data.
   - Browser visual check: built preview on `127.0.0.1:4174` passed for Home and direct `/about` at 1280x720 and 390x844 with deterministic Flickr data; headers, gallery image, About copy, root URLs, and no horizontal overflow were confirmed, with zero console errors during the mocked visual pass.
+- [x] Phase 5: First gallery load characterization
+  - RED command + failure: `rtk ./run.sh test` failed after adding the first Home/gallery characterization because the rendered thumbnail image had no accessible `alt` text; the failed first-page slice later failed with an unhandled Flickr rejection while skeletons remained visible.
+  - GREEN command + pass: `rtk ./run.sh format && rtk ./run.sh test && rtk ./run.sh e2e-tests && rtk ./run.sh build` passed after adding local gallery fixtures, locking skeleton-before-photo behavior, first request shape, rendered photo details, no new error UI, mocked Home e2e data, delayed image skeleton behavior, thumbnail accessible text, and local failed-load recovery.
 
 ## Working Notes
 

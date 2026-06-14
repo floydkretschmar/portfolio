@@ -91,10 +91,16 @@ export default {
       }
     },
     async load() {
-      const res = await apiService.fetchItemsAPI(
-        this.pageNumber,
-        this.pageCount,
-      );
+      const res = await apiService
+        .fetchItemsAPI(this.pageNumber, this.pageCount)
+        .catch(() => {
+          this.isLoading = false;
+          return null;
+        });
+
+      if (!res) {
+        return;
+      }
 
       const startIndex = (this.pageNumber - 1) * this.pageCount;
       const endIndex = this.pageNumber * this.pageCount;
