@@ -17,8 +17,8 @@
 - [x] Axios, `core-js`, TypeScript support, and the abandoned masonry dependency are removed after replacement/parity is proven.
 - [ ] Masonry is replaced with CSS-only behavior; no masonry replacement package of any kind is added, including exact-pinned package alternatives.
 - [x] README and `docs/PROJECT.md` are updated; other process docs stay untouched except tiny unavoidable corrections.
-- [ ] Cleanup removes unused handlers, state, comments, styles, scaffold residue, stale config, and dead dependencies after parity is green.
-- [ ] Required done evidence is green: `rtk npm ci`, `rtk ./run.sh format`, `rtk ./run.sh check`, `rtk ./run.sh test`, `rtk ./run.sh e2e-tests`, `rtk ./run.sh build`, `rtk npm audit signatures --min-release-age=0`, and `rtk npm audit --audit-level=high`.
+- [x] Cleanup removes unused handlers, state, comments, styles, scaffold residue, stale config, and dead dependencies after parity is green.
+- [x] Required done evidence is green: `rtk npm ci`, `rtk ./run.sh format`, `rtk ./run.sh check`, `rtk ./run.sh test`, `rtk ./run.sh e2e-tests`, `rtk ./run.sh build`, `rtk npm audit signatures --min-release-age=0`, and `rtk npm audit --audit-level=high`.
 - [ ] Browser visual checks pass for Home/gallery and About on desktop and mobile.
 - [ ] Branch protection evidence exists on `main`, or a user-approved deferral is documented.
 
@@ -38,7 +38,7 @@
 - [x] Phase 12: CSS Masonry Layout Boundary
 - [x] Phase 13: Framework And JavaScript Modernization
 - [x] Phase 14: Repository Docs
-- [ ] Phase 15: Final Cleanup And Parity Closure
+- [x] Phase 15: Final Cleanup And Parity Closure
 - [ ] Final verification
 
 ## TDD Slice Log (Required)
@@ -131,6 +131,11 @@
   - GREEN command + pass: `rtk ./run.sh check` passed after rewriting `README.md` and `docs/PROJECT.md` to describe the renovated Vue/Vite client, `run.sh` command surface, validation/e2e/build/deploy expectations, pinned npm runtime policy, and the external Flickr service contract without claiming backend ownership.
   - REFACTOR command + pass: `rtk ./run.sh check` passed after removing duplicated scaffold/operator text and keeping the README focused on operations while `docs/PROJECT.md` carries the durable module and service-boundary overview.
   - REVIEW FIX command + pass: `rtk npm exec -- prettier docs/PROJECT.md --check && rtk ./run.sh check && rtk node --test tests/run-contract.test.js` passed after adding `docs/PROJECT.md` to the wrapper format/check targets and formatting the project overview.
+- [x] Phase 15: Final Cleanup And Parity Closure
+  - BASELINE command + pass: Pre-cleanup baseline already passed in the main thread with `rtk npm ci && rtk ./run.sh format && rtk ./run.sh check && rtk ./run.sh test && rtk ./run.sh e2e-tests && rtk ./run.sh build && rtk npm audit signatures --min-release-age=0 && rtk npm audit --audit-level=high`; generated `coverage/` and `dist/` were removed and the worktree was clean before this cleanup slice.
+  - GREEN cleanup command + pass: `rtk ./run.sh check && rtk ./run.sh build` passed after deleting the empty Vuetify Sass settings file and its Vite `configFile` reference, proving the stale config was not needed by check/build.
+  - REFACTOR command + pass: `rtk npm exec -- vitest run tests/behavior/router/route-shell.test.js tests/behavior/gallery/image-card.test.js && rtk ./run.sh check && rtk ./run.sh build` passed after removing empty Vue script blocks, unused header `.about` styles, and an overwritten duplicate opacity declaration.
+  - FINAL command + pass: `rtk npm ci && rtk ./run.sh format && rtk ./run.sh check && rtk ./run.sh test && rtk ./run.sh e2e-tests && rtk ./run.sh build && rtk npm audit signatures --min-release-age=0 && rtk npm audit --audit-level=high` passed with 7 Node contract tests, 30 Vitest behavior tests at 100% coverage, 7 Playwright e2e tests, verified package signatures, and 0 high-severity audit findings.
 
 ## Working Notes
 

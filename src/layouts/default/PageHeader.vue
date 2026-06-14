@@ -29,15 +29,6 @@ export default {
   flex-wrap: wrap;
   align-items: baseline;
 }
-.about {
-  font-size: 1.6rem;
-  font-weight: 300;
-}
-
-.about a {
-  color: #777;
-  text-decoration: none;
-}
 
 .menu ul {
   padding-top: 0.5em;

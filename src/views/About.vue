@@ -18,8 +18,6 @@
   </div>
 </template>
 
-<script setup></script>
-
 <style lang="scss">
 .about-page {
   display: flex;
