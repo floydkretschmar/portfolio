@@ -172,6 +172,55 @@ describe("gallery service", () => {
     await pending;
   });
 
+  it("exposes appended skeleton cards while a continuation page is pending", async () => {
+    const pageTwo = createDeferred();
+    const flickrClient = {
+      fetchPage: vi
+        .fn()
+        .mockResolvedValueOnce({
+          data: {
+            data: [
+              {
+                id: "first-page-photo",
+                thumbnail: {
+                  height: 320,
+                  url: "https://images.example.test/first-thumb.jpg",
+                },
+                title: "First page photo",
+              },
+            ],
+            totalPages: 2,
+          },
+        })
+        .mockReturnValueOnce(pageTwo.promise),
+    };
+    const service = createGalleryService({
+      cache: createEmptyCache(),
+      flickrClient,
+      pageSize: 1,
+    });
+
+    service.restore();
+    await service.loadNext();
+    const pending = service.loadNext();
+
+    expect(service.snapshot()).toMatchObject({
+      isLoading: true,
+      itemList: [
+        { id: "first-page-photo" },
+        {
+          id: "skeleton-0",
+          loaded: false,
+          thumbnail: { height: expect.any(Number) },
+        },
+      ],
+      pageNumber: 2,
+    });
+
+    pageTwo.resolve({ data: { data: [], totalPages: 2 } });
+    await pending;
+  });
+
   it("preserves the visible failed-load snapshot and allows a later load", async () => {
     const cache = createEmptyCache();
     const write = vi.spyOn(cache, "write");

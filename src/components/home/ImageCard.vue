@@ -14,23 +14,19 @@
         :alt="image.alt || image.title"
         class="align-end image"
       />
-      <v-card-title
-        class="text-h7 text-white d-flex flex-column image-info-container"
-      >
+      <div class="text-white image-info-container">
         <div class="image-info" :class="{ 'on-hover': isHovering }">
-          <p>
+          <p class="image-info-title">
             {{ image.title }}
           </p>
-          <div>
-            <p class="text-caption" style="float: left">
+          <div class="image-info-meta">
+            <span class="image-info-date">
               {{ image.dateWhenTaken }}
-            </p>
-            <p class="text-caption" style="float: right">
-              Views: {{ image.views }}
-            </p>
+            </span>
+            <span class="image-info-views"> Views: {{ image.views }} </span>
           </div>
         </div>
-      </v-card-title>
+      </div>
       <v-dialog v-model="dialog" activator="parent" width="auto">
         <v-card v-if="dialog">
           <img
@@ -60,15 +56,12 @@ export default {
 </script>
 
 <style lang="scss">
-.v-card-title,
-.text-caption {
-  font-weight: 100 !important;
-}
-
 .item {
   break-inside: avoid;
   display: block;
   margin-bottom: var(--gallery-gap, 20px);
+  overflow: hidden;
+  position: relative;
   width: min(var(--gallery-card-width, 350px), 100%);
 }
 
@@ -77,33 +70,77 @@ export default {
 }
 
 .image {
+  display: block;
   width: 100%;
   height: auto;
 }
 
-.v-card-title {
+.image-info-container {
+  bottom: 0;
+  left: 0;
   padding: 0 !important;
+  pointer-events: none;
+  position: absolute;
+  right: 0;
+  z-index: 1;
 }
 
 .image-info {
-  background: rgba(0, 0, 0, 0.7);
-  padding: 0.5em;
-  padding-left: 1em;
-  padding-right: 1em;
-  visibility: hidden;
+  background: linear-gradient(
+    180deg,
+    rgba(0, 0, 0, 0) 0%,
+    rgba(0, 0, 0, 0.76) 34%,
+    rgba(0, 0, 0, 0.86) 100%
+  );
+  box-sizing: border-box;
+  line-height: 1.2;
   opacity: 0;
+  padding: 28px 14px 12px;
   transition:
-    visibility 0s,
-    opacity 0.5s linear;
+    opacity 0.18s ease,
+    transform 0.18s ease,
+    visibility 0s linear 0.18s;
+  transform: translateY(8px);
+  visibility: hidden;
+  width: 100%;
 }
 
 .image-info.on-hover {
-  visibility: visible;
   opacity: 1;
+  transform: translateY(0);
+  transition-delay: 0s;
+  visibility: visible;
 }
 
-.image-info-container {
-  margin-top: -90px;
+.image-info-title {
+  font-size: 0.875rem;
+  font-weight: 300;
+  line-height: 1.2;
+  margin: 0 0 0.45rem;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.image-info-meta {
+  align-items: center;
+  display: flex;
+  font-size: 0.75rem;
+  font-weight: 300;
+  gap: 0.75rem;
+  justify-content: space-between;
+  line-height: 1.2;
+  white-space: nowrap;
+}
+
+.image-info-date,
+.image-info-views {
+  min-width: 0;
+}
+
+.image-info-date {
+  overflow: hidden;
+  text-overflow: ellipsis;
 }
 
 .modal-image {

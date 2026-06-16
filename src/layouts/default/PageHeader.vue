@@ -1,6 +1,8 @@
 <template>
   <div class="header-root">
-    <div class="text-centered title font-weight-bold">Floyd Kretschmar</div>
+    <div class="text-centered site-title font-weight-bold">
+      Floyd Kretschmar
+    </div>
     <div class="menu">
       <ul>
         <li>
@@ -47,11 +49,17 @@ export default {
   color: #777;
   text-decoration: none;
 }
-.title {
+.site-title {
   width: 100%;
   text-align: center;
   font-size: 2rem;
   color: #222;
+}
+
+@media (prefers-color-scheme: dark) {
+  .site-title {
+    color: #e5e7eb;
+  }
 }
 
 @media only screen and (min-width: 1100px) {
@@ -59,7 +67,7 @@ export default {
     font-size: 1.6rem;
     font-weight: 300;
   }
-  .title {
+  .site-title {
     font-size: 2.75rem;
     width: auto;
     text-align: right;

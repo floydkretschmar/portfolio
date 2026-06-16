@@ -84,7 +84,9 @@ export default {
       this.load();
     },
     async load() {
-      const snapshot = await this.gallery.loadNext();
+      const request = this.gallery.loadNext();
+      this.applySnapshot(this.gallery.snapshot());
+      const snapshot = await request;
       this.applySnapshot(snapshot);
       return snapshot;
     },

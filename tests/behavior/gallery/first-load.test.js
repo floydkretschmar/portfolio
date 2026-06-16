@@ -462,6 +462,10 @@ describe("first gallery load", () => {
     await nextFrame();
 
     expect(requestedPageNumbers().filter((page) => page === 2)).toHaveLength(1);
+    expect(
+      document.querySelectorAll(".image-container .v-skeleton-loader").length,
+    ).toBeGreaterThan(0);
+    expect(visiblePhotoTitles()).toEqual(firstPage.map((photo) => photo.title));
 
     pageTwo.resolve(fetchResponse(pageResponse(secondPage, 2).data));
     await vi.waitFor(

@@ -127,6 +127,55 @@ test("Home renders mocked Flickr photos after the first loading presentation", a
   await expect(page.getByAltText(photo.title, { exact: true })).toBeVisible();
 });
 
+test("Home photo metadata overlays without changing masonry card height", async ({
+  page,
+}) => {
+  await mockFlickr(page);
+  await mockImages(page);
+
+  await page.goto("/");
+
+  const card = page.locator(".item", {
+    has: page.getByAltText(photo.title, { exact: true }),
+  });
+  const image = page.getByAltText(photo.title, { exact: true });
+  await expect(image).toBeVisible();
+
+  const cardBefore = await card.boundingBox();
+  const imageBefore = await image.boundingBox();
+
+  await card.hover();
+  await expect(page.getByText(photo.title, { exact: true })).toBeVisible();
+  await expect(card.locator(".image-info-title")).toHaveCSS(
+    "font-size",
+    "14px",
+  );
+  await expect(card.locator(".image-info-meta")).toHaveCSS("display", "flex");
+  await expect(card.locator(".image-info-meta")).toHaveCSS(
+    "white-space",
+    "nowrap",
+  );
+  await expect(card.locator(".image-info")).toHaveCSS(
+    "transform",
+    "matrix(1, 0, 0, 1, 0, 0)",
+  );
+
+  const cardAfter = await card.boundingBox();
+  const imageAfter = await image.boundingBox();
+  const infoBox = await card.locator(".image-info").boundingBox();
+
+  expect(cardBefore).not.toBeNull();
+  expect(imageBefore).not.toBeNull();
+  expect(cardAfter).not.toBeNull();
+  expect(imageAfter).not.toBeNull();
+  expect(infoBox).not.toBeNull();
+  expect(Math.abs(cardAfter.height - imageAfter.height)).toBeLessThanOrEqual(1);
+  expect(Math.abs(cardBefore.height - cardAfter.height)).toBeLessThanOrEqual(1);
+  expect(infoBox.y + infoBox.height).toBeLessThanOrEqual(
+    imageAfter.y + imageAfter.height + 1,
+  );
+});
+
 test("Home keeps skeletons visible while mocked image fixtures are delayed", async ({
   page,
 }) => {
@@ -158,6 +207,9 @@ test("Home appends page two once when bottom scrolling repeats during the pendin
 
   await page.evaluate(() => window.scrollTo(0, document.body.scrollHeight));
   await flickr.pageTwoPending;
+  expect(
+    await page.locator(".image-container .v-skeleton-loader").count(),
+  ).toBeGreaterThan(0);
   expect(flickr.requests.filter((pageNumber) => pageNumber === 2)).toHaveLength(
     1,
   );

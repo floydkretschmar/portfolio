@@ -58,3 +58,28 @@ test("production preview serves Home and About routes through the SPA shell", as
   await expect(page.getByText("Welcome.")).toBeVisible();
   expect(requests).toEqual(["1"]);
 });
+
+test("site header remains visible for dark color schemes", async ({
+  browser,
+}) => {
+  const context = await browser.newContext({ colorScheme: "dark" });
+  const page = await context.newPage();
+
+  await page.route("https://flickr-service.fly.dev/photos/**", (route) => {
+    return route.fulfill({
+      contentType: "application/json",
+      json: {
+        data: photos,
+        totalPages: 1,
+      },
+    });
+  });
+
+  await page.goto("/");
+
+  const title = page.getByText("Floyd Kretschmar");
+  await expect(title).toBeVisible();
+  await expect(title).toHaveCSS("color", "rgb(229, 231, 235)");
+
+  await context.close();
+});
