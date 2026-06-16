@@ -64,6 +64,9 @@ export function createGalleryService({ cache, flickrClient, pageSize }) {
   let pending = false;
 
   return {
+    snapshot() {
+      return snapshot;
+    },
     restore() {
       const cached = cache.read();
       if (cached.value) {
