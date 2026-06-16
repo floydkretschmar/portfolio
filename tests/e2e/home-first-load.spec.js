@@ -143,6 +143,18 @@ test("Home photo metadata overlays without changing masonry card height", async 
 
   const cardBefore = await card.boundingBox();
   const imageBefore = await image.boundingBox();
+  const hiddenInfoBox = await card.locator(".image-info").boundingBox();
+
+  expect(cardBefore).not.toBeNull();
+  expect(imageBefore).not.toBeNull();
+  expect(hiddenInfoBox).not.toBeNull();
+  expect(
+    Math.abs(
+      hiddenInfoBox.y +
+        hiddenInfoBox.height -
+        (imageBefore.y + imageBefore.height),
+    ),
+  ).toBeLessThanOrEqual(0.25);
 
   await card.hover();
   await expect(page.getByText(photo.title, { exact: true })).toBeVisible();
@@ -155,10 +167,7 @@ test("Home photo metadata overlays without changing masonry card height", async 
     "white-space",
     "nowrap",
   );
-  await expect(card.locator(".image-info")).toHaveCSS(
-    "transform",
-    "matrix(1, 0, 0, 1, 0, 0)",
-  );
+  await expect(card.locator(".image-info")).toHaveCSS("opacity", "1");
 
   const cardAfter = await card.boundingBox();
   const imageAfter = await image.boundingBox();
@@ -171,9 +180,9 @@ test("Home photo metadata overlays without changing masonry card height", async 
   expect(infoBox).not.toBeNull();
   expect(Math.abs(cardAfter.height - imageAfter.height)).toBeLessThanOrEqual(1);
   expect(Math.abs(cardBefore.height - cardAfter.height)).toBeLessThanOrEqual(1);
-  expect(infoBox.y + infoBox.height).toBeLessThanOrEqual(
-    imageAfter.y + imageAfter.height + 1,
-  );
+  expect(
+    Math.abs(infoBox.y + infoBox.height - (imageAfter.y + imageAfter.height)),
+  ).toBeLessThanOrEqual(0.25);
 });
 
 test("Home keeps skeletons visible while mocked image fixtures are delayed", async ({
@@ -186,7 +195,49 @@ test("Home keeps skeletons visible while mocked image fixtures are delayed", asy
 
   await expect(page.getByText(photo.title, { exact: true })).toBeAttached();
   expect(await page.locator(".v-skeleton-loader").count()).toBeGreaterThan(0);
+  expect(
+    await page.locator(".image-container").evaluate((container) =>
+      Array.from(container.children)
+        .filter((item) => window.getComputedStyle(item).display !== "none")
+        .every(
+          (item) =>
+            item.querySelector(".v-skeleton-loader") &&
+            item.getBoundingClientRect().width > 0,
+        ),
+    ),
+  ).toBe(true);
   await expect(page.getByAltText(photo.title, { exact: true })).toBeVisible();
+});
+
+test("Home keeps the dark app background through the full scrollable gallery", async ({
+  browser,
+}) => {
+  const context = await browser.newContext({ colorScheme: "dark" });
+  const page = await context.newPage();
+  await mockFlickr(page, 0, createPhotos("dark-background", 20));
+  await mockImages(page);
+
+  await page.goto("/");
+
+  await expect(page.getByText("dark-background photo 20")).toBeAttached();
+  const background = await page.evaluate(() => {
+    const app = document.querySelector(".v-application");
+    const appBox = app.getBoundingClientRect();
+
+    return {
+      app: window.getComputedStyle(app).backgroundColor,
+      appHeight: appBox.height,
+      body: window.getComputedStyle(document.body).backgroundColor,
+      documentHeight: document.documentElement.scrollHeight,
+    };
+  });
+
+  expect(background.appHeight).toBeGreaterThanOrEqual(
+    background.documentHeight - 1,
+  );
+  expect(background.body).toBe(background.app);
+
+  await context.close();
 });
 
 test("Home appends page two once when bottom scrolling repeats during the pending request", async ({
