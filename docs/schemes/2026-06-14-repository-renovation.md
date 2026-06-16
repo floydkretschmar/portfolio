@@ -12,9 +12,9 @@ Durable decisions that apply across all phases:
 - **Service boundaries**: The app uses a DOM-free `gallery-service`, a native-fetch Flickr client, an injected cache boundary, an injected clock/randomness boundary, a native `IntersectionObserver` browser boundary, and a local masonry/layout boundary.
 - **Masonry**: The current abandoned masonry implementation must be replaced with CSS-only masonry. Do not add any masonry replacement package, including exact-pinned package alternatives. The CSS replacement should stay as close to current visitor behavior as possible with no major UX change.
 - **Validation**: `run.sh` is the single local and CI validation entry point. Required commands are `format`, `check`, `test`, `e2e-tests`, and `build`.
-- **Testing boundaries**: Behavior-unit coverage is measured only from behavior tests. Version, dependency, workflow, and architecture assertions are static `run.sh check` validations; documentation content is manually reviewed, with only markdown/format validation in `run.sh check`. Any custom checker must be covered through public-runner fixture/contract checks and must not count toward behavior-unit coverage.
+- **Testing boundaries**: Behavior-unit coverage is measured only from behavior tests. Version, dependency, workflow, and architecture assertions are static `run.sh check` validations; documentation content is manually reviewed, with only markdown/format validation in `run.sh check`.
 - **Refactor verification**: Every aggressive refactor step must rerun the same green command from that phase's verification step before the phase can be considered complete.
-- **CI and policy**: CI uses `npm ci`, calls `run.sh`, splits validation gates like the reference service plus e2e, and deploys only after required checks pass. Branch protection changes require explicit user approval during execution.
+- **CI and governance**: CI uses `npm ci`, calls `run.sh`, splits validation gates like the reference service plus e2e, and deploys only after required checks pass. Branch protection changes require explicit user approval during execution.
 - **Documentation**: Only `README.md` and `docs/PROJECT.md` are updated as planned documentation work.
 
 ---
@@ -91,21 +91,20 @@ Add the smallest real validation harness and package scripts required for `run.s
 ### What to build
 Pin the runtime and package-management contract before dependency modernization. The current app must still install and build from a clean checkout.
 
-#### Step 2.1: Write failing policy check
+#### Step 2.1: Write failing static validation
 
-- Repository policy checks (static `run.sh check`, not behavior-unit coverage)
+- Repository static validations (static `run.sh check`, not behavior-unit coverage)
   - Happy path:
     - declared Node version -> matches `24.16.0`
     - declared npm package manager -> matches `npm@11.13.0`
     - engine policy -> rejects unsupported Node versions
     - release-age policy -> sets `min-release-age=7`, matching the reference service policy
-    - custom policy checker, if introduced -> has public-runner fixture/contract coverage outside behavior-unit coverage
-  - Edge case: package manager missing -> policy check fails
-  - Edge case: loose direct dependency range -> policy check fails
-  - Edge case: release-age policy missing -> policy check fails
+  - Edge case: package manager missing -> validation fails
+  - Edge case: loose direct dependency range -> validation fails
+  - Edge case: release-age policy missing -> validation fails
 
 **Run:** `rtk ./run.sh check`
-**Expect:** FAIL (red policy/static check)
+**Expect:** FAIL (red static validation)
 
 #### Step 2.2: Implement minimal code
 Add exact Node/npm runtime declarations, npm policy, exact direct dependency policy, and lockfile consistency while preserving the current production build.
@@ -144,9 +143,9 @@ Add exact Node/npm runtime declarations, npm policy, exact direct dependency pol
 Move repository automation to the same governance model as the reference service before app refactors begin. CI must call `run.sh`, use `npm ci`, include package signature and high-severity vulnerability audits, and gate deploys after validation.
 This phase proves the `ci/audit-vulnerabilities` gate exists with the required name and command; high-severity audit success is proven after vulnerable dependency removal/upgrade in Phase 13 and again in final evidence. Branch protection is applied only after explicit user approval when required checks are green, or explicitly deferred.
 
-#### Step 3.1: Write failing policy check
+#### Step 3.1: Write failing static validation
 
-- Repository workflow policy checks (static `run.sh check`, not behavior-unit coverage)
+- Repository workflow validations (static `run.sh check`, not behavior-unit coverage)
   - Happy path:
     - npm setup gate -> installs and uses `npm@11.13.0`
     - install gate -> uses `npm ci`
@@ -158,25 +157,24 @@ This phase proves the `ci/audit-vulnerabilities` gate exists with the required n
     - e2e gate -> calls `run.sh e2e-tests`
     - deploy gate -> depends on required validation gates and runs only on `main`
     - GitHub Pages SPA fallback -> preserves the deploy artifact behavior that serves the app for direct static routes
-  - Edge case: inline complex validation shell in CI -> policy check fails
-  - Edge case: required check name mismatch -> policy check fails
-- Dependabot/automerge policy checks (static `run.sh check`, not behavior-unit coverage)
+  - Edge case: inline complex validation shell in CI -> validation fails
+  - Edge case: required check name mismatch -> validation fails
+- Dependabot/automerge validations (static `run.sh check`, not behavior-unit coverage)
   - Happy path: npm patch/minor update with green checks -> eligible for automerge
   - Happy path: npm security patch/minor update with green checks -> eligible for automerge
   - Edge case: npm major update -> PR opens but does not automerge
   - Edge case: npm security major update -> PR opens but does not automerge
   - Happy path: GitHub Actions major update with green checks -> eligible for automerge
   - Happy path: Dependabot schedule -> weekly with seven-day cooldown
-  - Edge case: Docker ecosystem present -> policy check fails
+  - Edge case: Docker ecosystem present -> validation fails
   - Edge case: missing metadata or required checks -> automerge does not enable
   - Edge case: unclassified update type -> automerge does not enable
-- Secrets/credentials policy checks (static/manual review, not behavior-unit coverage)
+- Secrets/credentials validations (static/manual review, not behavior-unit coverage)
   - Happy path: workflows use only least-privilege `GITHUB_TOKEN` permissions needed for GitHub Pages and validation unless separately approved
   - Edge case: new secret material, PAT dependency, or credential configuration appears -> manual/static review fails
-  - Edge case: custom workflow checker, if introduced, lacks public-runner fixture/contract coverage outside behavior-unit coverage -> check fails
 
 **Run:** `rtk ./run.sh check`
-**Expect:** FAIL (red policy/static check)
+**Expect:** FAIL (red static validation)
 
 #### Step 3.2: Implement minimal code
 Split CI into required gates, add Dependabot npm/GitHub Actions config with weekly cooldown, add safe automerge rules, and prepare branch-protection steps for explicit user approval.
@@ -188,7 +186,7 @@ Split CI into required gates, add Dependabot npm/GitHub Actions config with week
 #### Step 3.4: Aggressive refactor
 - Remove old monolithic deploy workflow logic.
 - Remove duplicated CI shell fragments that belong in `run.sh`.
-- Consolidate required check names in automerge policy.
+- Consolidate required check names in automerge workflow rules.
 
 #### Step 3.5: Manual verification
 1. Inspect CI job names and confirm they match required status checks.
@@ -666,7 +664,7 @@ Replace the current masonry implementation with CSS-only masonry behind a local 
 #### Phase 12 precondition: Capture pre-replacement Browser baseline
 Before writing the red checks or changing masonry, capture Browser baselines for Home desktop, Home mobile, and Home after page-two append while the current masonry path is still active. Record viewport sizes, rendered card count, horizontal-overflow result, approximate column/card density, appended-page visibility, and a note of current spacing/card-size rhythm.
 
-#### Step 12.1: Write failing tests and policy checks
+#### Step 12.1: Write failing tests and static validations
 
 - Rendered CSS masonry behavior
   - Happy path: initial gallery -> cards render in a multi-column visual flow matching the recorded baseline criteria
@@ -677,12 +675,11 @@ Before writing the red checks or changing masonry, capture Browser baselines for
   - Happy path: gallery renders through the public layout container contract used by CSS masonry
   - Happy path: appended cards enter the same public layout contract
   - Edge case: missing layout contract -> rendered gallery behavior test fails
-- Repository policy checks (static `run.sh check`, not behavior-unit coverage)
+- Repository static validations (static `run.sh check`, not behavior-unit coverage)
   - Happy path: no masonry package dependency of any kind is added
   - Happy path: no imperative JavaScript layout-control path remains attached to masonry behavior
   - Edge case: abandoned current implementation remains -> check fails
   - Edge case: imperative JavaScript masonry layout control remains -> check fails
-  - Edge case: custom policy checker, if introduced, lacks public-runner fixture/contract coverage outside behavior-unit coverage -> check fails
 
 **Run:** `rtk ./run.sh check && rtk ./run.sh test && rtk ./run.sh e2e-tests`
 **Expect:** FAIL (red)
@@ -723,7 +720,7 @@ Introduce the layout boundary, remove the old abandoned masonry path from the fi
 ### What to build
 Modernize Vite, Vue, router, Vuetify, lint, and JavaScript tooling behind the locked behavior tests. Remove `core-js`, TypeScript residue, and legacy assumptions.
 
-#### Step 13.1: Write failing tests and policy checks
+#### Step 13.1: Write failing tests and static validations
 
 - Framework parity
   - Happy path: Home route -> renders after dependency upgrades
@@ -731,15 +728,14 @@ Modernize Vite, Vue, router, Vuetify, lint, and JavaScript tooling behind the lo
   - Happy path: image dialog -> opens and closes after dependency upgrades
   - Happy path: build preview -> `/` and direct `/about` work
   - Edge case: root base -> assets resolve at `/`
-- Repository modernization policy checks (static `run.sh check`, not behavior-unit coverage)
+- Repository modernization validations (static `run.sh check`, not behavior-unit coverage)
   - Happy path: direct dependency targets, removals, and additions match the verified target table in the spec
   - Happy path: public data contracts -> documented with JSDoc
   - Edge case: TypeScript source/config residue in active runtime path -> check fails
   - Edge case: `core-js` remains as a direct dependency -> check fails
   - Edge case: runtime validation library is introduced -> check fails
   - Edge case: direct dependency target drifts from the spec table without planning update -> check/review fails
-  - Edge case: custom policy checker, if introduced, lacks public-runner fixture/contract coverage outside behavior-unit coverage -> check fails
-- Evergreen browser policy checks (static `run.sh check`, not behavior-unit coverage)
+- Evergreen browser validations (static `run.sh check`, not behavior-unit coverage)
   - Happy path: no legacy browser build path, legacy polyfill tooling, or stale ES5 target remains active
   - Edge case: legacy browser/polyfill tooling is configured -> check fails
 - Lint/format

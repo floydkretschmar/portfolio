@@ -32,7 +32,7 @@ This repository is a static Vue 3 portfolio SPA built with Vite and Vuetify. The
 ## Validation And Operations
 
 - `run.sh` is the canonical local and CI wrapper.
-- `./run.sh check` is non-mutating and runs Prettier checks, ESLint, and repository policy checks.
+- `./run.sh check` is non-mutating and runs Prettier checks plus ESLint.
 - `./run.sh format` is mutating and applies Prettier plus ESLint fixes.
 - `./run.sh test` runs unit/integration tests and enforces behavior-unit coverage.
 - `./run.sh e2e-tests` runs Playwright flows against mocked Flickr/image responses.

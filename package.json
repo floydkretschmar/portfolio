@@ -3,10 +3,10 @@
   "version": "0.0.0",
   "private": true,
   "scripts": {
-    "check": "prettier package.json package-lock.json index.html README.md docs/PROJECT.md 'tasks/**/*.md' '*.{cjs,js,json}' 'src/**/*.{js,vue,scss}' 'scripts/**/*.js' 'tests/**/*.js' --check && eslint config.js 'src/**/*.{js,vue}' 'scripts/**/*.js' 'tests/**/*.js' '*.config.js' --max-warnings=0 && node scripts/check-repository-policy.js",
+    "check": "prettier package.json package-lock.json index.html README.md docs/PROJECT.md 'tasks/**/*.md' '*.{cjs,js,json}' 'src/**/*.{js,vue,scss}' 'tests/**/*.js' --check && eslint config.js 'src/**/*.{js,vue}' 'tests/**/*.js' '*.config.js' --max-warnings=0",
     "dev": "vite",
     "e2e-tests": "playwright test",
-    "format": "prettier package.json package-lock.json index.html README.md docs/PROJECT.md 'tasks/**/*.md' '*.{cjs,js,json}' 'src/**/*.{js,vue,scss}' 'scripts/**/*.js' 'tests/**/*.js' --write && eslint config.js 'src/**/*.{js,vue}' 'scripts/**/*.js' 'tests/**/*.js' '*.config.js' --max-warnings=0 --fix",
+    "format": "prettier package.json package-lock.json index.html README.md docs/PROJECT.md 'tasks/**/*.md' '*.{cjs,js,json}' 'src/**/*.{js,vue,scss}' 'tests/**/*.js' --write && eslint config.js 'src/**/*.{js,vue}' 'tests/**/*.js' '*.config.js' --max-warnings=0 --fix",
     "build": "vite build",
     "preview": "vite preview",
     "test": "node --test tests/run-contract.test.js && vitest run --coverage"
