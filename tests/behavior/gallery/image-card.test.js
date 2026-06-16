@@ -50,6 +50,11 @@ describe("image card", () => {
     const image = document.querySelector("img.image");
 
     expect(document.querySelector(".v-skeleton-loader")).not.toBeNull();
+    expect(
+      Array.from(document.querySelectorAll(".item")).filter(
+        (item) => window.getComputedStyle(item).display !== "none",
+      ),
+    ).toHaveLength(1);
 
     image.dispatchEvent(new Event("load"));
     await nextFrame();

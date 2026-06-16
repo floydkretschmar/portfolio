@@ -6,7 +6,7 @@
     ></v-skeleton-loader>
   </v-card>
   <v-hover v-slot="{ isHovering, props }">
-    <v-card :width="loaded ? '' : 0" class="item" flat v-bind="props">
+    <v-card v-show="loaded" class="item" flat v-bind="props">
       <img
         @load="loaded = true"
         @error="$event.target.src = image.picture.fallback"
@@ -98,16 +98,13 @@ export default {
   padding: 28px 14px 12px;
   transition:
     opacity 0.18s ease,
-    transform 0.18s ease,
     visibility 0s linear 0.18s;
-  transform: translateY(8px);
   visibility: hidden;
   width: 100%;
 }
 
 .image-info.on-hover {
   opacity: 1;
-  transform: translateY(0);
   transition-delay: 0s;
   visibility: visible;
 }
