@@ -1,138 +1,92 @@
 <template>
-  <!-- <skeleton-container v-if="this.initialLoad"></skeleton-container> -->
-  <div
-    v-masonry
-    class="image-container"
-    transition-duration="0"
-    item-selector=".item"
-    :origin-top="true"
-    :horizontal-order="true"
-    :fit-width="true"
-    gutter="20"
-  >
-    <div class="row">
+  <div>
+    <div class="image-container" data-gallery-layout="masonry">
       <image-card v-for="image in itemList" :key="image.id" :image="image" />
     </div>
+    <div ref="sentinel" class="gallery-sentinel" aria-hidden="true"></div>
   </div>
 </template>
 
 <script>
-import ApiService from "@/services/ApiService.ts";
 import ImageCard from "@/components/home/ImageCard.vue";
+import { createFlickrClient } from "@/services/flickr-client.js";
+import { createGalleryService } from "@/services/gallery-service.js";
+import { createObserverBoundary } from "@/services/observer-boundary.js";
+import { createSessionCache } from "@/services/session-cache.js";
 import config from "../../../config.js";
 
-const apiService = new ApiService();
+const flickrClient = createFlickrClient({
+  config,
+  fetch: (...args) => window.fetch(...args),
+});
 export default {
   data: () => ({
-    itemList: [],
-    pageNumber: 1,
+    canLoadMore: true,
     finalPageNumber: -1,
-    pageCount: 20,
+    gallery: null,
+    observerBoundary: null,
     isLoading: false,
+    itemList: [],
   }),
   components: {
     ImageCard,
   },
   created() {
-    this.addSkeletonImagesToList();
-    const data = this.getCachedData();
+    this.gallery = this.createGallery();
+    const data = this.gallery.restore();
+    this.applySnapshot(data);
 
-    // cache was empty or freshly invalidated -> treat as new page load
     if (data.finalPageNumber === -1) {
-      this.isLoading = true;
-      this.load().then(() => {
-        window.addEventListener("scroll", this.handleScroll);
-      });
-    }
-    // restore cached data and add window handler
-    else {
-      this.finalPageNumber = data.finalPageNumber;
-      this.pageNumber = data.pageNumber;
-      this.pageCount = data.pageCount;
-      this.itemList = data.itemList;
-      window.addEventListener("scroll", this.handleScroll);
+      this.load();
     }
   },
+  mounted() {
+    this.observerBoundary = this.createObserverBoundary();
+    this.observerBoundary.observe(this.$refs.sentinel);
+  },
+  beforeUnmount() {
+    this.observerBoundary?.disconnect();
+  },
   methods: {
-    getCachedData() {
-      const homeCache = sessionStorage.getItem("home-data");
-      if (homeCache) {
-        const cache = JSON.parse(homeCache);
-        if (
-          Date.now().valueOf() <
-          cache.timestamp.valueOf() + config.cache_ttl_ms >
-          0
-        ) {
-          // cache is still valid so return cached data
-          return cache.data;
-        } else {
-          // cache has timed out so remove from storage
-          sessionStorage.removeItem("home-data");
-        }
-      }
-      return this.$data;
+    applySnapshot(snapshot) {
+      this.canLoadMore = snapshot.canLoadMore;
+      this.finalPageNumber = snapshot.finalPageNumber;
+      this.isLoading = snapshot.isLoading;
+      this.itemList = snapshot.itemList;
     },
-    async handleScroll() {
-      let scrollHeight = window.scrollY;
-      let maxHeight =
-        window.document.body.scrollHeight -
-        window.document.documentElement.clientHeight;
-
-      if (
-        scrollHeight >= maxHeight - 200 &&
-        this.pageNumber <= this.finalPageNumber &&
-        !this.isLoading
-      ) {
-        this.isLoading = true;
-        this.load().then(() => {
-          this.$redrawVueMasonry();
-        });
-        this.addSkeletonImagesToList();
+    cache() {
+      return createSessionCache({
+        now: Date.now,
+        storage: sessionStorage,
+        ttlMs: config.cache_ttl_ms,
+      });
+    },
+    createGallery() {
+      return createGalleryService({
+        cache: this.cache(),
+        flickrClient,
+        pageSize: config.gallery_page_size,
+      });
+    },
+    createObserverBoundary() {
+      return createObserverBoundary({
+        IntersectionObserver: window.IntersectionObserver,
+        onIntersect: this.requestLoadMore,
+        rootMargin: "200px 0px",
+      });
+    },
+    requestLoadMore() {
+      if (this.finalPageNumber === -1 || !this.canLoadMore || this.isLoading) {
+        return;
       }
+
+      this.isLoading = true;
+      this.load();
     },
     async load() {
-      const res = await apiService.fetchItemsAPI(
-        this.pageNumber,
-        this.pageCount,
-      );
-
-      const startIndex = (this.pageNumber - 1) * this.pageCount;
-      const endIndex = this.pageNumber * this.pageCount;
-      for (
-        let currentIndex = startIndex;
-        currentIndex < endIndex;
-        currentIndex++
-      ) {
-        const currentRelativeIndex = currentIndex - startIndex;
-
-        if (currentRelativeIndex < res.data.data.length) {
-          this.itemList[currentIndex] = res.data.data[currentRelativeIndex];
-        } else {
-          this.itemList = this.itemList.splice(0, currentIndex - 1);
-          break;
-        }
-      }
-      this.pageNumber++;
-      this.finalPageNumber = res.data.totalPages;
-      this.isLoading = false;
-      sessionStorage.setItem(
-        "home-data",
-        JSON.stringify({ data: this.$data, timestamp: Date.now() }),
-      );
-    },
-    generateRandomInteger(min, max) {
-      return Math.floor(min + Math.random() * (max - min + 1));
-    },
-    addSkeletonImagesToList() {
-      for (let i = 0; i < this.pageCount; i++) {
-        this.itemList.push({
-          loaded: false,
-          thumbnail: {
-            // Do some random height between 200 and 700 for the image skeleton loader
-            height: 400 + this.generateRandomInteger(-200, 200),
-          },
-        });
-      }
+      const snapshot = await this.gallery.loadNext();
+      this.applySnapshot(snapshot);
+      return snapshot;
     },
   },
 };
@@ -140,8 +94,47 @@ export default {
 
 <style lang="scss" scoped>
 .image-container {
+  --gallery-card-width: 350px;
+  --gallery-column-count: 1;
+  --gallery-gap: 20px;
+  column-count: var(--gallery-column-count);
+  column-gap: var(--gallery-gap);
   margin: auto;
-  position: relative;
+  width: min(
+    calc(
+      var(--gallery-card-width) * var(--gallery-column-count) +
+        var(--gallery-gap) * (var(--gallery-column-count) - 1)
+    ),
+    calc(100vw - 40px)
+  );
+}
+
+@media (min-width: 760px) {
+  .image-container {
+    --gallery-column-count: 2;
+  }
+}
+
+@media (min-width: 1130px) {
+  .image-container {
+    --gallery-column-count: 3;
+  }
+}
+
+@media (min-width: 1500px) {
+  .image-container {
+    --gallery-column-count: 4;
+  }
+}
+
+@media (min-width: 1870px) {
+  .image-container {
+    --gallery-column-count: 5;
+  }
+}
+
+.gallery-sentinel {
+  block-size: 1px;
 }
 
 ::v-deep(.v-skeleton-loader) > * {

@@ -1,59 +1,49 @@
 <template>
-  <div v-if="!this.loaded">
-    <v-card v-masonry-tile class="item" @click="" flat>
-      <v-skeleton-loader
-        type="image"
-        :height="image.thumbnail.height"
-        v-masonry-tile
-      ></v-skeleton-loader>
-    </v-card>
-  </div>
-  <div>
-    <v-hover v-slot="{ isHovering, props }">
-      <v-card
-        :width="loaded ? '' : 0"
-        v-masonry-tile
-        class="item"
-        @click=""
-        flat
-        v-bind="props"
+  <v-card v-if="!this.loaded" class="item" flat>
+    <v-skeleton-loader
+      type="image"
+      :height="image.thumbnail.height"
+    ></v-skeleton-loader>
+  </v-card>
+  <v-hover v-slot="{ isHovering, props }">
+    <v-card :width="loaded ? '' : 0" class="item" flat v-bind="props">
+      <img
+        @load="loaded = true"
+        @error="$event.target.src = image.picture.fallback"
+        :src="image.thumbnail.url"
+        :alt="image.alt || image.title"
+        class="align-end image"
+      />
+      <v-card-title
+        class="text-h7 text-white d-flex flex-column image-info-container"
       >
-        <img
-          @load="loaded = true"
-          :src="image.thumbnail.url"
-          class="align-end image"
-        />
-        <v-card-title
-          class="text-h7 text-white d-flex flex-column image-info-container"
-        >
-          <div class="image-info" :class="{ 'on-hover': isHovering }">
-            <p>
-              {{ image.title }}
+        <div class="image-info" :class="{ 'on-hover': isHovering }">
+          <p>
+            {{ image.title }}
+          </p>
+          <div>
+            <p class="text-caption" style="float: left">
+              {{ image.dateWhenTaken }}
             </p>
-            <div>
-              <p class="text-caption" style="float: left">
-                {{ image.dateWhenTaken }}
-              </p>
-              <p class="text-caption" style="float: right">
-                Views: {{ image.views }}
-              </p>
-            </div>
+            <p class="text-caption" style="float: right">
+              Views: {{ image.views }}
+            </p>
           </div>
-        </v-card-title>
-        <v-dialog v-model="dialog" activator="parent" width="auto">
-          <v-card>
-            <img
-              class="modal-image"
-              :src="image.picture.url"
-              @error="$event.target.src = image.picture.fallback"
-              :alt="image.title"
-            />
-            <span class="close-button" @click="dialog = false">&times;</span>
-          </v-card>
-        </v-dialog>
-      </v-card>
-    </v-hover>
-  </div>
+        </div>
+      </v-card-title>
+      <v-dialog v-model="dialog" activator="parent" width="auto">
+        <v-card v-if="dialog">
+          <img
+            class="modal-image"
+            :src="image.picture.url"
+            @error="$event.target.src = image.picture.fallback"
+            :alt="image.alt || image.title"
+          />
+          <span class="close-button" @click="dialog = false">&times;</span>
+        </v-card>
+      </v-dialog>
+    </v-card>
+  </v-hover>
 </template>
 
 <script>
@@ -62,7 +52,6 @@ export default {
   props: ["image"],
   data() {
     return {
-      isExpanded: false,
       dialog: false,
       loaded: false,
     };
@@ -77,8 +66,10 @@ export default {
 }
 
 .item {
-  margin-bottom: 20px;
-  width: 350px;
+  break-inside: avoid;
+  display: block;
+  margin-bottom: var(--gallery-gap, 20px);
+  width: min(var(--gallery-card-width, 350px), 100%);
 }
 
 .v-overlay {
@@ -96,7 +87,6 @@ export default {
 
 .image-info {
   background: rgba(0, 0, 0, 0.7);
-  opacity: 1;
   padding: 0.5em;
   padding-left: 1em;
   padding-right: 1em;

@@ -29,15 +29,6 @@ export default {
   flex-wrap: wrap;
   align-items: baseline;
 }
-.about {
-  font-size: 1.6rem;
-  font-weight: 300;
-}
-
-.about a {
-  color: #777;
-  text-decoration: none;
-}
 
 .menu ul {
   padding-top: 0.5em;
@@ -64,11 +55,7 @@ export default {
 }
 
 @media only screen and (min-width: 1100px) {
-  .header-root {
-    padding: 3rem 2rem;
-  }
   .menu li {
-    padding: 0 1em;
     font-size: 1.6rem;
     font-weight: 300;
   }

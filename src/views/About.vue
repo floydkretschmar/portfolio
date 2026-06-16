@@ -18,8 +18,6 @@
   </div>
 </template>
 
-<script setup></script>
-
 <style lang="scss">
 .about-page {
   display: flex;
@@ -38,7 +36,6 @@
 .text-container {
   max-width: 85vw;
   margin-top: 2rem;
-  margin-left: 0px;
   margin-bottom: 2rem;
 }
 
