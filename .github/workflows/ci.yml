@@ -164,6 +164,8 @@ jobs:
         run: npm install -g npm@11.13.0
       - name: Install dependencies
         run: npm ci
+      - name: Install Playwright browsers
+        run: npx playwright install --with-deps chromium
       - name: E2E tests
         run: ./run.sh e2e-tests
 
