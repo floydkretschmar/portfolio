@@ -23,7 +23,7 @@ Production behavior must remain root-hosted at `https://floydkretschmar.com/`, b
 7. As the repository owner, I want package scripts to back the wrapper commands, so that local and CI behavior are transparent.
 8. As the repository owner, I want a test that locks the `run.sh` command contract, so that wrapper regressions are caught.
 9. As the repository owner, I want CI to defer to `run.sh`, so that local and remote validation do not drift.
-10. As the repository owner, I want CI split into install, audit, check, build, test coverage, e2e, and deploy gates, so that failures are easy to diagnose.
+10. As the repository owner, I want CI split into install, audit, check, build, test, e2e, and deploy commands, so that failures are easy to diagnose.
 11. As the repository owner, I want deployment to run only after required validation gates pass on `main`, so that broken states are not deployed.
 12. As the repository owner, I want branch protection on `main`, so that required checks cannot be bypassed accidentally.
 13. As the repository owner, I want Dependabot configured for npm and GitHub Actions, so that dependency updates are routinely proposed.
@@ -75,8 +75,8 @@ Production behavior must remain root-hosted at `https://floydkretschmar.com/`, b
 59. As a developer, I want ESLint modernized to flat configuration for JavaScript and Vue, so that linting matches current tooling.
 60. As a developer, I want non-mutating lint separated from fixing lint, so that CI verification cannot silently rewrite files.
 61. As a developer, I want Prettier configuration and checks, so that formatting is consistent.
-62. As a developer, I want unit coverage to enforce at least 90% line coverage for behavior-tested units, so that shallow integration/e2e tests cannot mask missing unit coverage.
-63. As a developer, I want integration tests separated from unit coverage accounting, so that coverage signals remain meaningful.
+62. As a developer, I want coverage collected from behavior tests, so that unexercised behavior is visible without adding tests for coverage mechanics.
+63. As a developer, I want integration and e2e confidence to come from observable behavior, not coverage-accounting tests.
 64. As a developer, I want Playwright e2e tests to use deterministic mocked Flickr responses, so that CI does not depend on the live backend.
 65. As a developer, I want Playwright to exercise production preview behavior, so that the built SPA routing works.
 66. As a developer, I want direct About route loading verified, so that SPA fallback behavior is protected.
@@ -168,7 +168,7 @@ Production behavior must remain root-hosted at `https://floydkretschmar.com/`, b
 - `run.sh` is the single repository validation wrapper.
 - `run.sh format` is mutating. It runs formatting and lint fixes.
 - `run.sh check` is non-mutating. It verifies formatting, linting, and static repository checks.
-- `run.sh test` runs unit and integration tests only, and enforces the 90% line coverage threshold for behavior unit tests.
+- `run.sh test` runs unit and integration behavior tests with coverage enabled.
 - `run.sh e2e-tests` runs Playwright tests only.
 - `run.sh build` runs the production build.
 - `run.sh` keeps the existing setup and hook helper responsibilities where applicable.
@@ -183,7 +183,7 @@ Production behavior must remain root-hosted at `https://floydkretschmar.com/`, b
   - audit vulnerabilities,
   - check,
   - build,
-  - unit/integration test coverage,
+  - unit/integration behavior tests,
   - e2e tests,
   - deploy.
 - CI uses `npm ci`, not `npm install`.
@@ -227,29 +227,29 @@ Production behavior must remain root-hosted at `https://floydkretschmar.com/`, b
 - High-severity npm audit findings must be cleared.
 - Verified direct dependency targets as of June 14, 2026:
 
-| Package | Target | Decision |
-|---|---:|---|
-| `@mdi/font` | `7.4.47` | Keep and upgrade |
-| `roboto-fontface` | `0.10.0` | Keep pinned |
-| `vue` | `3.5.38` | Keep and upgrade |
-| `vue-router` | `5.1.0` | Upgrade with route parity tests |
-| `vuetify` | `4.1.1` | Upgrade with visual parity checks |
-| `axios` | remove | Replace with native fetch |
-| `core-js` | remove | No legacy polyfill replacement |
-| `vue-masonry` | remove; replace with CSS-only masonry behind the layout boundary | Preserve masonry behavior as closely as possible without major UX change |
-| `@vitejs/plugin-vue` | `6.0.7` | Keep and upgrade |
-| `vite` | `8.0.16` | Keep and upgrade |
-| `vite-plugin-vuetify` | `2.1.3` | Keep and upgrade |
-| `eslint` | `10.5.0` | Modern flat config |
-| `@eslint/js` | `10.0.1` | Add for flat config |
-| `eslint-plugin-vue` | `10.9.2` | Keep and upgrade |
-| `prettier` | `3.8.4` | Keep and upgrade |
-| `sass` | `1.101.0` | Keep and upgrade |
-| `vitest` | `4.1.8` | Add |
-| `@vitest/coverage-v8` | `4.1.8` | Add |
-| `@vue/test-utils` | `2.4.11` | Add |
-| `jsdom` | `29.1.1` | Add |
-| `@playwright/test` | `1.60.0` | Add |
+| Package               |                                                           Target | Decision                                                                 |
+| --------------------- | ---------------------------------------------------------------: | ------------------------------------------------------------------------ |
+| `@mdi/font`           |                                                         `7.4.47` | Keep and upgrade                                                         |
+| `roboto-fontface`     |                                                         `0.10.0` | Keep pinned                                                              |
+| `vue`                 |                                                         `3.5.38` | Keep and upgrade                                                         |
+| `vue-router`          |                                                          `5.1.0` | Upgrade with route parity tests                                          |
+| `vuetify`             |                                                          `4.1.1` | Upgrade with visual parity checks                                        |
+| `axios`               |                                                           remove | Replace with native fetch                                                |
+| `core-js`             |                                                           remove | No legacy polyfill replacement                                           |
+| `vue-masonry`         | remove; replace with CSS-only masonry behind the layout boundary | Preserve masonry behavior as closely as possible without major UX change |
+| `@vitejs/plugin-vue`  |                                                          `6.0.7` | Keep and upgrade                                                         |
+| `vite`                |                                                         `8.0.16` | Keep and upgrade                                                         |
+| `vite-plugin-vuetify` |                                                          `2.1.3` | Keep and upgrade                                                         |
+| `eslint`              |                                                         `10.5.0` | Modern flat config                                                       |
+| `@eslint/js`          |                                                         `10.0.1` | Add for flat config                                                      |
+| `eslint-plugin-vue`   |                                                         `10.9.2` | Keep and upgrade                                                         |
+| `prettier`            |                                                          `3.8.4` | Keep and upgrade                                                         |
+| `sass`                |                                                        `1.101.0` | Keep and upgrade                                                         |
+| `vitest`              |                                                          `4.1.8` | Add                                                                      |
+| `@vitest/coverage-v8` |                                                          `4.1.8` | Add                                                                      |
+| `@vue/test-utils`     |                                                         `2.4.11` | Add                                                                      |
+| `jsdom`               |                                                         `29.1.1` | Add                                                                      |
+| `@playwright/test`    |                                                         `1.60.0` | Add                                                                      |
 
 ### Data Flow
 
@@ -274,9 +274,8 @@ flowchart TD
 - Unit tests target deep behavior modules with injected dependencies.
 - Integration/component tests target rendered Vue behavior at public component boundaries.
 - E2E tests target core user flows through the browser using deterministic mocked network and image responses.
-- Unit coverage enforces at least 90% line coverage for unit-tested behavior modules through `run.sh test`.
-- Integration and e2e tests must not inflate or mask the unit coverage threshold.
-- The unit coverage configuration must make it clear which behavior modules are included in the 90% unit line coverage gate.
+- Coverage is collected from behavior tests through `run.sh test`.
+- Tests must not exist to validate coverage mechanics, repository policy, or architecture constraints.
 - Test design must avoid asserting implementation choices such as Axios removal, internal cache key names, or exact component private state.
 - Tests may assert externally visible contracts such as requested URL shape, rendered behavior, wrapper command behavior, and deployable app behavior.
 - Test fixtures must be deterministic. Skeleton generation, time, storage, fetch responses, observer triggers, and image failures must be controllable.

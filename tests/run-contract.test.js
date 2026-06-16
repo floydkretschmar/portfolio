@@ -8,7 +8,7 @@ import test from "node:test";
 
 const root = new URL("..", import.meta.url);
 
-test("run.sh dispatches real validation commands with clear failures", async () => {
+test("run.sh dispatches supported commands with clear failures", async () => {
   const fixture = await createFixture();
 
   try {
@@ -76,72 +76,6 @@ test("run.sh check reports fixable lint while format fixes it", async () => {
 
     assert.equal(run(fixture, "format").status, 0);
     assert.equal(readFileSync(target, "utf8"), fixed);
-  } finally {
-    rmSync(fixture, { force: true, recursive: true });
-  }
-});
-
-test("behavior-unit coverage gate rejects low behavior coverage despite e2e data", async () => {
-  const fixture = mkdtempSync(join(tmpdir(), "portfolio-coverage-"));
-
-  try {
-    await mkdir(join(fixture, "src"), { recursive: true });
-    await mkdir(join(fixture, "tests/behavior"), { recursive: true });
-    await mkdir(join(fixture, "coverage/e2e"), { recursive: true });
-    await writeFile(
-      join(fixture, "src/behavior.js"),
-      `
-export function covered() {
-  return "covered";
-}
-
-export function uncovered() {
-  return "uncovered";
-}
-`,
-    );
-    await writeFile(
-      join(fixture, "tests/behavior/behavior.test.js"),
-      `
-import { expect, test } from "vitest";
-import { covered } from "../../src/behavior.js";
-
-test("covered behavior", () => {
-  expect(covered()).toBe("covered");
-});
-`,
-    );
-    await writeFile(join(fixture, "coverage/e2e/lcov.info"), "TN:e2e\n");
-    await writeFile(
-      join(fixture, "vitest.config.js"),
-      `
-export default {
-  test: {
-    coverage: {
-      all: true,
-      include: ["src/behavior.js"],
-      provider: "v8",
-      reportsDirectory: "coverage/behavior-unit",
-      reporter: ["text"],
-      thresholds: {
-        lines: 90,
-      },
-    },
-    environment: "node",
-    include: ["tests/behavior/**/*.test.js"],
-  },
-};
-`,
-    );
-
-    const lowCoverage = spawnSync(
-      join(root.pathname, "node_modules/.bin/vitest"),
-      ["run", "--coverage", "--config", "vitest.config.js"],
-      { cwd: fixture, encoding: "utf8" },
-    );
-
-    assert.notEqual(lowCoverage.status, 0);
-    assert.match(lowCoverage.stdout + lowCoverage.stderr, /Coverage for lines/);
   } finally {
     rmSync(fixture, { force: true, recursive: true });
   }
@@ -219,12 +153,18 @@ async function createPackageScriptFixture() {
     join(fixture, "node_modules"),
   );
   await mkdir(join(fixture, "docs"));
+  await mkdir(join(fixture, "docs/archive/fixture"), { recursive: true });
   await mkdir(join(fixture, "src"));
   await mkdir(join(fixture, "tasks"));
   await mkdir(join(fixture, "tests"));
   await writeFile(join(fixture, ".gitignore"), "node_modules\n");
   await writeFile(join(fixture, "README.md"), "# Fixture\n");
   await writeFile(join(fixture, "docs/PROJECT.md"), "# Fixture\n");
+  await writeFile(join(fixture, "docs/TESTING.md"), "# Fixture\n");
+  await writeFile(
+    join(fixture, "docs/archive/fixture/SUMMARY.md"),
+    "# Fixture\n",
+  );
   await writeFile(join(fixture, "config.js"), "export default {};\n");
   await writeFile(join(fixture, "index.html"), '<div id="app"></div>\n');
   await writeFile(

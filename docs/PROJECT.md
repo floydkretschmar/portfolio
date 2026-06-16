@@ -16,7 +16,7 @@ This repository is a static Vue 3 portfolio SPA built with Vite and Vuetify. The
 | `src/services/session-cache.js`              | Injected browser-storage cache boundary with TTL and invalid-data recovery.                                                                                                   |
 | `src/services/observer-boundary.js`          | Injectable native `IntersectionObserver` boundary for infinite-scroll triggers and cleanup.                                                                                   |
 | `config.js`                                  | Client runtime configuration for the Flickr service base URL, photoset, gallery page size, and cache TTL.                                                                     |
-| `tests/`                                     | Node contract tests, Vitest behavior tests, and Playwright e2e tests with deterministic Flickr/image fixtures.                                                                |
+| `tests/`                                     | Node command-behavior tests, Vitest behavior tests, and Playwright e2e tests with deterministic Flickr/image fixtures.                                                        |
 | `.github/workflows/`                         | CI validation and GitHub Pages deployment automation.                                                                                                                         |
 
 ## Architecture
@@ -34,7 +34,7 @@ This repository is a static Vue 3 portfolio SPA built with Vite and Vuetify. The
 - `run.sh` is the canonical local and CI wrapper.
 - `./run.sh check` is non-mutating and runs Prettier checks plus ESLint.
 - `./run.sh format` is mutating and applies Prettier plus ESLint fixes.
-- `./run.sh test` runs unit/integration tests and enforces behavior-unit coverage.
+- `./run.sh test` runs command, unit, and integration behavior tests with coverage enabled.
 - `./run.sh e2e-tests` runs Playwright flows against mocked Flickr/image responses.
 - `./run.sh build` runs the production Vite build.
 - CI installs with `npm ci`, uses npm `11.13.0`, runs split validation gates, preserves the SPA fallback artifact, and deploys to GitHub Pages only from `main` after required checks pass.

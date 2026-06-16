@@ -1,15 +1,17 @@
-# Golden rule:
-**Test only behaviour**: **NEVER** assert structure: Don't test deletions, don't test existence or absence of dependencies, don't assert versions, don't assert architectural dependencies. ONLY. TEST. BEHAVIOUR.
+# Golden Rule
+
+**Test only behaviour**: **NEVER** use tests to enforce policy, architecture constraints, dependency state, version state, coverage metrics, file existence, file absence, or deletion. Testing is always behavior validation through public interfaces and observable outcomes.
 
 ## Testing Principles
+
 - **Test driven**: You test before you build. Never the other way around.
 - **Tests are not optional**: Never skip tests to "move faster"
-- **Test parity**: Every load-bearing class or module must have a corresponding test file before a task can be considered complete.
-- **Testing module integration**: Every module MUST have relevant integration test that prove ALL relevant itegration paths
+- **Test the behavior that matters**: Cover the observable paths users, callers, or commands rely on.
 - **Testing simplicity**: Never add a new test when an existing test can be parameterized to cover both scenarios. Always modify existing tests to cover new cases instead of adding new ones when possible.
 - **Visual verification**: User-facing surface changes require a full Browser visual check of the affected screens and controls in addition to automated tests.
 
 ## Testing Conventions
+
 - **No empty tests**: Every test must include meaningful assertions and follow the Arrange-Act-Assert pattern.
 - **Prefer holistic tests**: Merge multiple tests that are testing partial logic into a single test that tests the entire critical path.
 - **Share fixtures within modules**: Extract any shared setup or fixture logic into a single fixture file adjacent to the test files and reuse it.Fixtures HAVE to stay local in a module. Do not centralize them or cross-reference them across modules.
@@ -19,7 +21,7 @@
 - **Keep tests honest**: Never weaken or simplify a test to make it pass; keep the real failing value in the test and fix the logic at the root.
 
 ### Other Conventions
-- Test package paths must mirror main package paths exactly; integration-test grouping must still align with corresponding implementation slice/package.
+
 - Never add dedicated tests for pure cleanup-only changes such as dead-code removal, catalog pruning, or unused-import deletion when no user-visible behavior changes; verify existing behavior instead of introducing brittle cleanup tests.
 
 ### Good Tests
@@ -137,6 +139,7 @@ generic_client:
 ```
 
 The SDK approach means:
+
 - Each mock returns one specific shape
 - No conditional logic in test setup
 - Easier to see which endpoints a test exercises

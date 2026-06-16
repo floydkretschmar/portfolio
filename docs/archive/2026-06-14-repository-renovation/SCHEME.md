@@ -12,7 +12,7 @@ Durable decisions that apply across all phases:
 - **Service boundaries**: The app uses a DOM-free `gallery-service`, a native-fetch Flickr client, an injected cache boundary, an injected clock/randomness boundary, a native `IntersectionObserver` browser boundary, and a local masonry/layout boundary.
 - **Masonry**: The current abandoned masonry implementation must be replaced with CSS-only masonry. Do not add any masonry replacement package, including exact-pinned package alternatives. The CSS replacement should stay as close to current visitor behavior as possible with no major UX change.
 - **Validation**: `run.sh` is the single local and CI validation entry point. Required commands are `format`, `check`, `test`, `e2e-tests`, and `build`.
-- **Testing boundaries**: Behavior-unit coverage is measured only from behavior tests. Version, dependency, workflow, and architecture assertions are static `run.sh check` validations; documentation content is manually reviewed, with only markdown/format validation in `run.sh check`.
+- **Testing boundaries**: Tests validate behavior through public interfaces and observable outcomes. Coverage is collected from behavior tests, but tests must not validate coverage mechanics, repository policy, dependency state, or architecture constraints.
 - **Refactor verification**: Every aggressive refactor step must rerun the same green command from that phase's verification step before the phase can be considered complete.
 - **CI and governance**: CI uses `npm ci`, calls `run.sh`, splits validation gates like the reference service plus e2e, and deploys only after required checks pass. Branch protection changes require explicit user approval during execution.
 - **Documentation**: Only `README.md` and `docs/PROJECT.md` are updated as planned documentation work.
@@ -24,6 +24,7 @@ Durable decisions that apply across all phases:
 **User stories**: 1, 2, 4, 5, 6, 7, 8, 60, 61, 62, 63, 74
 
 ### What to build
+
 Make local validation real before any behavior migration. This slice introduces the minimum package-backed command surface and wrapper contract so later slices can trust `run.sh`.
 
 #### Step 1.1: Write failing test
@@ -33,7 +34,7 @@ Make local validation real before any behavior migration. This slice introduces 
     - Happy path:
       - `check` command -> invokes non-mutating check command and returns success when checks pass
       - `format` command -> invokes mutating format command and returns success when formatting/fixable lint succeeds
-      - `test` command -> invokes unit/integration tests with behavior-unit coverage enabled
+      - `test` command -> invokes unit/integration behavior tests with coverage enabled
       - `e2e-tests` command -> invokes Playwright command
       - `build` command -> invokes production build command
     - Edge case: unknown command -> exits non-zero and prints usage
@@ -43,10 +44,9 @@ Make local validation real before any behavior migration. This slice introduces 
     - Happy path: `check` on already formatted code -> no file changes
     - Edge case: formatting violation -> `check` fails without rewriting the file
     - Happy path: `format` on formatting violation -> rewrites the file and returns success
-- Unit coverage gate
-  - Happy path: behavior unit tests at or above 90% line coverage -> `test` succeeds
-  - Edge case: behavior unit tests below 90% line coverage -> `test` fails
-  - Edge case: integration/e2e coverage data exists -> does not satisfy the behavior-unit threshold
+- Coverage reporting
+  - Happy path: behavior tests run with coverage enabled
+  - Edge case: missing behavior remains visible through the coverage report and behavior-test failures
 - Helper command contract
   - Happy path: existing hook/setup helper responsibilities remain available where applicable
   - Edge case: a helper is no longer applicable -> the inspected removal decision is documented in the phase notes
@@ -55,13 +55,16 @@ Make local validation real before any behavior migration. This slice introduces 
 **Expect:** FAIL (red)
 
 #### Step 1.2: Implement minimal code
-Add the smallest real validation harness and package scripts required for `run.sh` to dispatch meaningful `format`, `check`, `test`, `e2e-tests`, and `build` commands. Keep the test target tiny but real, with unit coverage configured for behavior modules.
+
+Add the smallest real command harness and package scripts required for `run.sh` to dispatch meaningful `format`, `check`, `test`, `e2e-tests`, and `build` commands. Keep the test target tiny but real, with coverage collected from behavior tests.
 
 #### Step 1.3: Verify test passes
+
 **Run:** `rtk ./run.sh test`
 **Expect:** PASS (green)
 
 #### Step 1.4: Aggressive refactor
+
 - Remove placeholder wrapper functions.
 - Remove duplicated package-script aliases that are not called by `run.sh`.
 - Consolidate wrapper usage output.
@@ -69,6 +72,7 @@ Add the smallest real validation harness and package scripts required for `run.s
 - Delete any temporary fake test target once a real contract test is green.
 
 #### Step 1.5: Manual verification
+
 1. Run `rtk ./run.sh check` on the clean tree and confirm it succeeds without changing files.
 2. Introduce a harmless formatting-only edit, run `rtk ./run.sh check`, and confirm it fails without rewriting the file.
 3. Run `rtk ./run.sh format` and confirm it fixes the formatting.
@@ -78,7 +82,7 @@ Add the smallest real validation harness and package scripts required for `run.s
 
 - [ ] `run.sh` commands are real, package-backed, and non-placeholder.
 - [ ] `check` is non-mutating and `format` is mutating.
-- [ ] `test` enforces the 90% behavior-unit line coverage gate.
+- [ ] `test` runs behavior tests with coverage enabled.
 - [ ] Unsupported wrapper commands fail clearly.
 - [ ] Existing `run.sh` hook/setup helper responsibilities are preserved where applicable or deliberately documented as no longer applicable.
 
@@ -89,11 +93,12 @@ Add the smallest real validation harness and package scripts required for `run.s
 **User stories**: 17, 18
 
 ### What to build
+
 Pin the runtime and package-management contract before dependency modernization. The current app must still install and build from a clean checkout.
 
-#### Step 2.1: Write failing static validation
+#### Step 2.1: Write failing command checks
 
-- Repository static validations (static `run.sh check`, not behavior-unit coverage)
+- Repository command checks (`run.sh check`, not tests)
   - Happy path:
     - declared Node version -> matches `24.16.0`
     - declared npm package manager -> matches `npm@11.13.0`
@@ -104,21 +109,25 @@ Pin the runtime and package-management contract before dependency modernization.
   - Edge case: release-age policy missing -> validation fails
 
 **Run:** `rtk ./run.sh check`
-**Expect:** FAIL (red static validation)
+**Expect:** FAIL (red command check)
 
 #### Step 2.2: Implement minimal code
+
 Add exact Node/npm runtime declarations, npm policy, exact direct dependency policy, and lockfile consistency while preserving the current production build.
 
 #### Step 2.3: Verify test passes
+
 **Run:** `rtk npm ci && rtk ./run.sh check && rtk ./run.sh build`
 **Expect:** PASS (green)
 
 #### Step 2.4: Aggressive refactor
+
 - Remove obsolete package manager hints.
 - Remove duplicated engine/version notes.
 - Keep dependency policy in one canonical place where possible.
 
 #### Step 2.5: Manual verification
+
 1. Remove installed dependencies.
 2. Run `rtk npm ci`.
 3. Run `rtk ./run.sh build`.
@@ -140,12 +149,13 @@ Add exact Node/npm runtime declarations, npm policy, exact direct dependency pol
 **User stories**: 9, 10, 11, 12, 13, 14, 15, 16, 19, 21, 71, 72, 74
 
 ### What to build
+
 Move repository automation to the same governance model as the reference service before app refactors begin. CI must call `run.sh`, use `npm ci`, include package signature and high-severity vulnerability audits, and gate deploys after validation.
 This phase proves the `ci/audit-vulnerabilities` gate exists with the required name and command; high-severity audit success is proven after vulnerable dependency removal/upgrade in Phase 13 and again in final evidence. Branch protection is applied only after explicit user approval when required checks are green, or explicitly deferred.
 
-#### Step 3.1: Write failing static validation
+#### Step 3.1: Write failing command checks
 
-- Repository workflow validations (static `run.sh check`, not behavior-unit coverage)
+- Repository workflow checks (`run.sh check`, not tests)
   - Happy path:
     - npm setup gate -> installs and uses `npm@11.13.0`
     - install gate -> uses `npm ci`
@@ -153,13 +163,13 @@ This phase proves the `ci/audit-vulnerabilities` gate exists with the required n
     - audit vulnerability gate -> runs high-severity audit
     - check gate -> calls `run.sh check`
     - build gate -> calls `run.sh build`
-    - test coverage gate -> calls `run.sh test`
+    - test command -> calls `run.sh test`
     - e2e gate -> calls `run.sh e2e-tests`
     - deploy gate -> depends on required validation gates and runs only on `main`
     - GitHub Pages SPA fallback -> preserves the deploy artifact behavior that serves the app for direct static routes
   - Edge case: inline complex validation shell in CI -> validation fails
   - Edge case: required check name mismatch -> validation fails
-- Dependabot/automerge validations (static `run.sh check`, not behavior-unit coverage)
+- Dependabot/automerge checks (`run.sh check`, not tests)
   - Happy path: npm patch/minor update with green checks -> eligible for automerge
   - Happy path: npm security patch/minor update with green checks -> eligible for automerge
   - Edge case: npm major update -> PR opens but does not automerge
@@ -169,26 +179,30 @@ This phase proves the `ci/audit-vulnerabilities` gate exists with the required n
   - Edge case: Docker ecosystem present -> validation fails
   - Edge case: missing metadata or required checks -> automerge does not enable
   - Edge case: unclassified update type -> automerge does not enable
-- Secrets/credentials validations (static/manual review, not behavior-unit coverage)
+- Secrets/credentials review (manual review, not tests)
   - Happy path: workflows use only least-privilege `GITHUB_TOKEN` permissions needed for GitHub Pages and validation unless separately approved
   - Edge case: new secret material, PAT dependency, or credential configuration appears -> manual/static review fails
 
 **Run:** `rtk ./run.sh check`
-**Expect:** FAIL (red static validation)
+**Expect:** FAIL (red command check)
 
 #### Step 3.2: Implement minimal code
+
 Split CI into required gates, add Dependabot npm/GitHub Actions config with weekly cooldown, add safe automerge rules, and prepare branch-protection steps for explicit user approval.
 
 #### Step 3.3: Verify test passes
+
 **Run:** `rtk ./run.sh check && rtk ./run.sh test && rtk ./run.sh e2e-tests && rtk ./run.sh build && rtk npm audit signatures --min-release-age=0`
 **Expect:** PASS (green)
 
 #### Step 3.4: Aggressive refactor
+
 - Remove old monolithic deploy workflow logic.
 - Remove duplicated CI shell fragments that belong in `run.sh`.
 - Consolidate required check names in automerge workflow rules.
 
 #### Step 3.5: Manual verification
+
 1. Inspect CI job names and confirm they match required status checks.
 2. Confirm deploy waits for validation gates on `main`.
 3. Confirm Dependabot has npm and GitHub Actions only.
@@ -200,7 +214,7 @@ Split CI into required gates, add Dependabot npm/GitHub Actions config with week
 
 - [ ] CI calls `run.sh` and uses `npm ci`.
 - [ ] CI installs and uses npm `11.13.0`.
-- [ ] Required gates include install, signature audit, vulnerability audit, check, build, test coverage, e2e, and deploy.
+- [ ] Required checks include install, signature audit, vulnerability audit, check, build, test, e2e, and deploy.
 - [ ] GitHub Pages SPA fallback artifact behavior is preserved.
 - [ ] Dependabot/automerge rules match the spec.
 - [ ] CI/automerge changes introduce no new secrets or credential requirements.
@@ -213,6 +227,7 @@ Split CI into required gates, add Dependabot npm/GitHub Actions config with week
 **User stories**: 3, 30, 31, 32, 33, 65, 66, 75
 
 ### What to build
+
 Lock the route shell and production preview behavior before changing gallery internals. Root hosting remains unchanged while base handling becomes Vite-native.
 
 #### Step 4.1: Write failing test
@@ -236,18 +251,22 @@ Lock the route shell and production preview behavior before changing gallery int
 **Expect:** FAIL (red)
 
 #### Step 4.2: Implement minimal code
+
 Add route/bootstrap and Playwright production-preview coverage, then move base handling to Vite-native configuration while preserving the root-hosted production contract.
 
 #### Step 4.3: Verify test passes
+
 **Run:** `rtk ./run.sh test && rtk ./run.sh e2e-tests && rtk ./run.sh build`
 **Expect:** PASS (green)
 
 #### Step 4.4: Aggressive refactor
+
 - Remove obsolete environment shims only when tests prove behavior is unchanged.
 - Consolidate route test fixtures.
 - Keep route tests behavior-focused and avoid private router internals.
 
 #### Step 4.5: Manual verification
+
 1. Build and preview the app.
 2. Open `/`.
 3. Click About, then Home.
@@ -269,6 +288,7 @@ Add route/bootstrap and Playwright production-preview coverage, then move base h
 **User stories**: 25, 32, 34, 35, 43, 49, 64, 75
 
 ### What to build
+
 Capture the first visible gallery path before refactoring. The visitor still sees skeletons first, then mocked Flickr photos, with no new error UI.
 
 #### Step 5.1: Write failing test
@@ -290,18 +310,22 @@ Capture the first visible gallery path before refactoring. The visitor still see
 **Expect:** FAIL (red)
 
 #### Step 5.2: Implement minimal code
+
 Add deterministic fixtures and tests around the live Home route while preserving the existing gallery rendering path.
 
 #### Step 5.3: Verify test passes
+
 **Run:** `rtk ./run.sh test && rtk ./run.sh e2e-tests`
 **Expect:** PASS (green)
 
 #### Step 5.4: Aggressive refactor
+
 - Share only local gallery fixtures within the gallery test area.
 - Remove duplicate first-load assertions.
 - Keep mocks at the network and image boundaries, not internal collaborators.
 
 #### Step 5.5: Manual verification
+
 1. Open Home with a delayed mocked response.
 2. Confirm skeleton cards appear first.
 3. Confirm photos replace the loading presentation.
@@ -321,6 +345,7 @@ Add deterministic fixtures and tests around the live Home route while preserving
 **User stories**: 36, 37, 38, 39, 64, 75
 
 ### What to build
+
 Lock infinite-scroll continuation before moving pagination logic. Page two appends, duplicate pending triggers are ignored, and partial final pages remain visible.
 
 #### Step 6.1: Write failing test
@@ -341,18 +366,22 @@ Lock infinite-scroll continuation before moving pagination logic. Page two appen
 **Expect:** FAIL (red)
 
 #### Step 6.2: Implement minimal code
+
 Add continuation tests around the current production gallery path without changing behavior yet.
 
 #### Step 6.3: Verify test passes
+
 **Run:** `rtk ./run.sh test && rtk ./run.sh e2e-tests`
 **Expect:** PASS (green)
 
 #### Step 6.4: Aggressive refactor
+
 - Parameterize repeated pagination scenarios where possible.
 - Remove duplicate scroll-trigger setup.
 - Keep assertions centered on visible cards and request shape.
 
 #### Step 6.5: Manual verification
+
 1. Load Home with mocked page one.
 2. Scroll to the bottom.
 3. Confirm page two cards append.
@@ -373,6 +402,7 @@ Add continuation tests around the current production gallery path without changi
 **User stories**: 40, 41, 42, 43, 50, 51
 
 ### What to build
+
 Make cache and failed-load behavior explicit before extraction. Valid cache restores, expired cache refreshes, corrupted cache recovers, and failed loads clear pending state without new visible error UI.
 
 #### Step 7.1: Write failing test
@@ -399,18 +429,22 @@ Make cache and failed-load behavior explicit before extraction. Valid cache rest
 **Expect:** FAIL (red)
 
 #### Step 7.2: Implement minimal code
+
 Add behavior tests and the smallest cache/failure handling needed to make the current production path explicit and recoverable. Any cache boundary introduced in this phase must be wired into the current production gallery path in the same slice; do not leave tested-but-unwired cache code.
 
 #### Step 7.3: Verify test passes
+
 **Run:** `rtk ./run.sh test`
 **Expect:** PASS (green)
 
 #### Step 7.4: Aggressive refactor
+
 - Consolidate cache fixtures local to gallery behavior tests.
 - Remove ad hoc cache parsing duplication.
 - Keep cache key/shape assertions out of tests unless externally visible.
 
 #### Step 7.5: Manual verification
+
 1. Load Home once to create cache.
 2. Reload with valid cache and confirm photos restore.
 3. Seed expired cache and reload; confirm fresh data loads.
@@ -432,6 +466,7 @@ Add behavior tests and the smallest cache/failure handling needed to make the cu
 **User stories**: 44, 45, 46, 47, 48, 49
 
 ### What to build
+
 Preserve the card-level interaction contract before framework and layout changes. Cards keep skeleton transition, hover overlay, metadata, dialog open/close, fallback image, and alt behavior.
 
 #### Step 8.1: Write failing test
@@ -456,18 +491,22 @@ Preserve the card-level interaction contract before framework and layout changes
 **Expect:** FAIL (red)
 
 #### Step 8.2: Implement minimal code
+
 Add component and e2e coverage around the existing image-card behavior without redesigning card UI.
 
 #### Step 8.3: Verify test passes
+
 **Run:** `rtk ./run.sh test && rtk ./run.sh e2e-tests`
 **Expect:** PASS (green)
 
 #### Step 8.4: Aggressive refactor
+
 - Remove empty handlers only after tests are green.
 - Remove unused card state only when it has no behavior.
 - Consolidate repeated card fixtures.
 
 #### Step 8.5: Manual verification
+
 1. Open Home with loaded cards.
 2. Hover a card and confirm overlay/metadata behavior.
 3. Click a card and confirm the dialog opens.
@@ -487,6 +526,7 @@ Add component and e2e coverage around the existing image-card behavior without r
 **User stories**: 24, 25, 26, 27, 73
 
 ### What to build
+
 Replace Axios with a production-used native-fetch client while preserving the exact Flickr API contract and current gallery behavior.
 
 #### Step 9.1: Write failing test
@@ -507,18 +547,22 @@ Replace Axios with a production-used native-fetch client while preserving the ex
 **Expect:** FAIL (red)
 
 #### Step 9.2: Implement minimal code
+
 Introduce the native-fetch client boundary with injected fetch/config and wire it into the live gallery path. Remove Axios only after the production path no longer uses it.
 
 #### Step 9.3: Verify test passes
+
 **Run:** `rtk ./run.sh test && rtk ./run.sh e2e-tests && rtk ./run.sh build`
 **Expect:** PASS (green)
 
 #### Step 9.4: Aggressive refactor
+
 - Remove Axios-specific assumptions.
 - Remove the old TypeScript service surface once replaced.
 - Keep JSDoc contracts concise and behavior-oriented.
 
 #### Step 9.5: Manual verification
+
 1. Load Home with mocked Flickr responses.
 2. Confirm the first page and page two render.
 3. Inspect the mocked request path and query params.
@@ -539,6 +583,7 @@ Introduce the native-fetch client boundary with injected fetch/config and wire i
 **User stories**: 34, 35, 36, 37, 38, 39, 40, 41, 42, 43, 50, 51, 52, 62, 63
 
 ### What to build
+
 Move gallery behavior into a DOM-free deep service under the service layer. The live gallery consumes renderable snapshots while visitor behavior remains unchanged.
 
 #### Step 10.1: Write failing test
@@ -562,27 +607,31 @@ Move gallery behavior into a DOM-free deep service under the service layer. The 
   - Happy path: injected Flickr client -> no live network dependency
   - Happy path: injected page-size config -> controls request limit and page sizing behavior
   - Happy path: injected cache-TTL config -> controls cache expiry behavior without hardcoded timing
-- Coverage gate
-  - Happy path: service behavior tests count toward behavior-unit coverage
-  - Edge case: missing service branch coverage -> `run.sh test` fails threshold
+- Coverage reporting
+  - Happy path: service behavior tests run with coverage enabled
+  - Edge case: missing service behavior is covered by behavior tests, not tests for coverage tooling
 
 **Run:** `rtk ./run.sh test`
 **Expect:** FAIL (red)
 
 #### Step 10.2: Implement minimal code
+
 Create the deep gallery service with injected boundaries and wire the live Home gallery to consume its renderable snapshot. Keep all previously characterized UI flows green.
 
 #### Step 10.3: Verify test passes
+
 **Run:** `rtk ./run.sh test && rtk ./run.sh e2e-tests`
 **Expect:** PASS (green)
 
 #### Step 10.4: Aggressive refactor
+
 - Remove duplicated pagination/cache logic from the component.
 - Reduce service interface to the smallest behavior-level surface.
 - Consolidate local service fixtures.
 - Remove temporary adapter code that is no longer production-used.
 
 #### Step 10.5: Manual verification
+
 1. Load Home from empty state.
 2. Scroll to load more.
 3. Reload with valid cache.
@@ -599,7 +648,7 @@ Create the deep gallery service with injected boundaries and wire the live Home 
 - [ ] Gallery snapshot, cache entry, and page-result public contracts are documented with lightweight JSDoc.
 - [ ] The live Home route uses the service.
 - [ ] Browser visual checks pass for Home desktop, Home mobile, and append flow after service wiring.
-- [ ] Behavior-unit coverage remains at or above 90%.
+- [ ] Behavior tests run with coverage enabled.
 
 ---
 
@@ -608,6 +657,7 @@ Create the deep gallery service with injected boundaries and wire the live Home 
 **User stories**: 36, 37, 51, 52, 53, 54
 
 ### What to build
+
 Replace global scroll orchestration with a native `IntersectionObserver` boundary. The user still experiences infinite scroll near the bottom of the gallery.
 
 #### Step 11.1: Write failing test
@@ -626,18 +676,22 @@ Replace global scroll orchestration with a native `IntersectionObserver` boundar
 **Expect:** FAIL (red)
 
 #### Step 11.2: Implement minimal code
+
 Add the injectable browser observer boundary and wire it to the production gallery sentinel and gallery service load behavior.
 
 #### Step 11.3: Verify test passes
+
 **Run:** `rtk ./run.sh test && rtk ./run.sh e2e-tests`
 **Expect:** PASS (green)
 
 #### Step 11.4: Aggressive refactor
+
 - Remove global scroll listener code.
 - Remove scroll-math helpers that are no longer production-used.
 - Keep observer setup isolated from gallery behavior logic.
 
 #### Step 11.5: Manual verification
+
 1. Open Home.
 2. Scroll to the bottom and confirm more photos load.
 3. Navigate to About and back.
@@ -659,12 +713,14 @@ Add the injectable browser observer boundary and wire it to the production galle
 **User stories**: 55, 56, 57, 58, 75
 
 ### What to build
+
 Replace the current masonry implementation with CSS-only masonry behind a local layout boundary. Do not add any masonry package, including an exact-pinned package alternative; the CSS replacement must stay as close to current behavior as possible without a major UX change.
 
 #### Phase 12 precondition: Capture pre-replacement Browser baseline
+
 Before writing the red checks or changing masonry, capture Browser baselines for Home desktop, Home mobile, and Home after page-two append while the current masonry path is still active. Record viewport sizes, rendered card count, horizontal-overflow result, approximate column/card density, appended-page visibility, and a note of current spacing/card-size rhythm.
 
-#### Step 12.1: Write failing tests and static validations
+#### Step 12.1: Write failing behavior tests and command checks
 
 - Rendered CSS masonry behavior
   - Happy path: initial gallery -> cards render in a multi-column visual flow matching the recorded baseline criteria
@@ -675,7 +731,7 @@ Before writing the red checks or changing masonry, capture Browser baselines for
   - Happy path: gallery renders through the public layout container contract used by CSS masonry
   - Happy path: appended cards enter the same public layout contract
   - Edge case: missing layout contract -> rendered gallery behavior test fails
-- Repository static validations (static `run.sh check`, not behavior-unit coverage)
+- Repository command checks (`run.sh check`, not tests)
   - Happy path: no masonry package dependency of any kind is added
   - Happy path: no imperative JavaScript layout-control path remains attached to masonry behavior
   - Edge case: abandoned current implementation remains -> check fails
@@ -685,19 +741,23 @@ Before writing the red checks or changing masonry, capture Browser baselines for
 **Expect:** FAIL (red)
 
 #### Step 12.2: Implement minimal code
+
 Introduce the layout boundary, remove the old abandoned masonry path from the final production path, and implement the replacement with CSS-only masonry.
 
 #### Step 12.3: Verify test passes
+
 **Run:** `rtk ./run.sh check && rtk ./run.sh test && rtk ./run.sh e2e-tests && rtk ./run.sh build`
 **Expect:** PASS (green)
 
 #### Step 12.4: Aggressive refactor
+
 - Remove old masonry directives/plugin registration if unused.
 - Remove obsolete imperative layout-control calls.
 - Remove duplicate gallery spacing styles.
 - Keep only one canonical layout strategy.
 
 #### Step 12.5: Manual verification
+
 1. After CSS masonry replacement, capture the same Browser views as the Phase 12 precondition.
 2. Compare viewport sizes, expected card count, absence of horizontal overflow, preservation of already loaded cards after append, appended-page visibility, approximate column/card density, and card spacing/size rhythm.
 3. Require explicit reviewer acceptance for any visible spacing, density, or card-size difference from the baseline.
@@ -718,9 +778,10 @@ Introduce the layout boundary, remove the old abandoned masonry path from the fi
 **User stories**: 20, 22, 23, 28, 29, 30, 31, 58, 59, 60, 61
 
 ### What to build
+
 Modernize Vite, Vue, router, Vuetify, lint, and JavaScript tooling behind the locked behavior tests. Remove `core-js`, TypeScript residue, and legacy assumptions.
 
-#### Step 13.1: Write failing tests and static validations
+#### Step 13.1: Write failing behavior tests and command checks
 
 - Framework parity
   - Happy path: Home route -> renders after dependency upgrades
@@ -728,14 +789,14 @@ Modernize Vite, Vue, router, Vuetify, lint, and JavaScript tooling behind the lo
   - Happy path: image dialog -> opens and closes after dependency upgrades
   - Happy path: build preview -> `/` and direct `/about` work
   - Edge case: root base -> assets resolve at `/`
-- Repository modernization validations (static `run.sh check`, not behavior-unit coverage)
+- Repository modernization checks (`run.sh check`, not tests)
   - Happy path: direct dependency targets, removals, and additions match the verified target table in the spec
   - Happy path: public data contracts -> documented with JSDoc
   - Edge case: TypeScript source/config residue in active runtime path -> check fails
   - Edge case: `core-js` remains as a direct dependency -> check fails
   - Edge case: runtime validation library is introduced -> check fails
   - Edge case: direct dependency target drifts from the spec table without planning update -> check/review fails
-- Evergreen browser validations (static `run.sh check`, not behavior-unit coverage)
+- Evergreen browser checks (`run.sh check`, not tests)
   - Happy path: no legacy browser build path, legacy polyfill tooling, or stale ES5 target remains active
   - Edge case: legacy browser/polyfill tooling is configured -> check fails
 - Lint/format
@@ -746,19 +807,23 @@ Modernize Vite, Vue, router, Vuetify, lint, and JavaScript tooling behind the lo
 **Expect:** FAIL (red)
 
 #### Step 13.2: Implement minimal code
+
 Upgrade framework/tooling dependencies to the exact target table from the spec, remove legacy polyfill and TypeScript residue, add JSDoc contracts, and preserve all existing route/gallery/card behavior.
 
 #### Step 13.3: Verify test passes
+
 **Run:** `rtk ./run.sh check && rtk ./run.sh test && rtk ./run.sh e2e-tests && rtk ./run.sh build && rtk npm audit --audit-level=high`
 **Expect:** PASS (green)
 
 #### Step 13.4: Aggressive refactor
+
 - Remove obsolete resolver extensions.
 - Remove unused compatibility shims.
 - Remove old scaffold comments.
 - Consolidate lint and format configuration.
 
 #### Step 13.5: Manual verification
+
 1. Run the full wrapper suite.
 2. Open Home in production preview.
 3. Scroll the gallery and open an image dialog.
@@ -779,6 +844,7 @@ Upgrade framework/tooling dependencies to the exact target table from the spec, 
 **User stories**: 67, 68, 69
 
 ### What to build
+
 Rewrite repository operator documentation to match the renovated app and validation model. Only `README.md` and `docs/PROJECT.md` are planned documentation targets.
 
 #### Step 14.1: Establish documentation verification
@@ -799,18 +865,22 @@ Rewrite repository operator documentation to match the renovated app and validat
 **Expect:** PASS or FAIL based only on markdown/format validation, not custom documentation content assertions. Manual review remains open until the docs are updated.
 
 #### Step 14.2: Implement minimal code
+
 Rewrite `README.md` concisely and update `docs/PROJECT.md` to reflect the final architecture, commands, dependency policy, and deployment model.
 
 #### Step 14.3: Verify test passes
+
 **Run:** `rtk ./run.sh check`
 **Expect:** PASS (green markdown/format validation, followed by completed manual documentation review)
 
 #### Step 14.4: Aggressive refactor
+
 - Remove scaffold README text.
 - Remove duplicated documentation between README and project overview.
 - Keep only operationally useful documentation.
 
 #### Step 14.5: Manual verification
+
 1. Read the README as a new maintainer.
 2. Follow the listed setup and validation commands.
 3. Confirm `docs/PROJECT.md` matches the implementation.
@@ -829,6 +899,7 @@ Rewrite `README.md` concisely and update `docs/PROJECT.md` to reflect the final 
 **User stories**: 70, 72, 73, 74, 75
 
 ### What to build
+
 After behavior parity is green, remove everything unused: handlers, stale comments, duplicate styles, scaffold residue, stale config, dead dependencies, and migration leftovers.
 
 #### Step 15.1: Establish cleanup verification baseline
@@ -847,13 +918,16 @@ After behavior parity is green, remove everything unused: handlers, stale commen
 **Expect:** PASS before cleanup; PASS again after cleanup. Any failure means cleanup broke existing behavior or left configured checks failing.
 
 #### Step 15.2: Implement minimal code
+
 Delete unused artifacts only after all replacement paths are production-used and tested. Do not add new behavior.
 
 #### Step 15.3: Verify test passes
+
 **Run:** `rtk npm ci && rtk ./run.sh format && rtk ./run.sh check && rtk ./run.sh test && rtk ./run.sh e2e-tests && rtk ./run.sh build && rtk npm audit signatures --min-release-age=0 && rtk npm audit --audit-level=high`
 **Expect:** PASS (green)
 
 #### Step 15.4: Aggressive refactor
+
 - Remove unused handlers and state.
 - Remove duplicate style declarations.
 - Remove obsolete comments and scaffold residue.
@@ -862,6 +936,7 @@ Delete unused artifacts only after all replacement paths are production-used and
 - Rerun the full Phase 15 verification command after cleanup deletions.
 
 #### Step 15.5: Manual verification
+
 1. Open Home on desktop and mobile.
 2. Confirm skeletons, loaded cards, infinite scroll, and masonry behavior remain equivalent to the Phase 12 accepted CSS-only behavior with no major UX change.
 3. Open and close an image dialog.
