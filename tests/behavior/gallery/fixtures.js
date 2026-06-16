@@ -57,11 +57,9 @@ export function pageResponse(photos, totalPages) {
 
 export function createDeferred() {
   let resolve;
-  let reject;
-  const promise = new Promise((promiseResolve, promiseReject) => {
+  const promise = new Promise((promiseResolve) => {
     resolve = promiseResolve;
-    reject = promiseReject;
   });
 
-  return { promise, reject, resolve };
+  return { promise, resolve };
 }

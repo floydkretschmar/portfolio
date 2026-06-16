@@ -11,14 +11,6 @@ function createEmptyCache() {
   };
 }
 
-function createPlaceholder(index) {
-  return {
-    id: `skeleton-${index}`,
-    loaded: false,
-    thumbnail: { height: 300 + index },
-  };
-}
-
 function createDeferred() {
   let resolve;
   const promise = new Promise((promiseResolve) => {
@@ -34,21 +26,39 @@ describe("gallery service", () => {
       cache: createEmptyCache(),
       flickrClient: { fetchPage: vi.fn() },
       pageSize: 3,
-      placeholder: { create: createPlaceholder },
     });
 
-    expect(service.restore()).toEqual({
+    const snapshot = service.restore();
+
+    expect(snapshot).toEqual({
       canLoadMore: true,
       finalPageNumber: -1,
       isLoading: false,
       itemList: [
-        { id: "skeleton-0", loaded: false, thumbnail: { height: 300 } },
-        { id: "skeleton-1", loaded: false, thumbnail: { height: 301 } },
-        { id: "skeleton-2", loaded: false, thumbnail: { height: 302 } },
+        {
+          id: "skeleton-0",
+          loaded: false,
+          thumbnail: { height: expect.any(Number) },
+        },
+        {
+          id: "skeleton-1",
+          loaded: false,
+          thumbnail: { height: expect.any(Number) },
+        },
+        {
+          id: "skeleton-2",
+          loaded: false,
+          thumbnail: { height: expect.any(Number) },
+        },
       ],
       pageCount: 3,
       pageNumber: 1,
     });
+    expect(
+      snapshot.itemList.every(
+        (item) => item.thumbnail.height >= 200 && item.thumbnail.height <= 600,
+      ),
+    ).toBe(true);
   });
 
   it("loads the first Flickr page as normalized renderable photo cards", async () => {
@@ -86,7 +96,6 @@ describe("gallery service", () => {
       cache,
       flickrClient,
       pageSize: 2,
-      placeholder: { create: createPlaceholder },
     });
 
     service.restore();
@@ -147,7 +156,6 @@ describe("gallery service", () => {
       cache: createEmptyCache(),
       flickrClient,
       pageSize: 2,
-      placeholder: { create: createPlaceholder },
     });
     const restored = service.restore();
 
@@ -195,7 +203,6 @@ describe("gallery service", () => {
       cache,
       flickrClient,
       pageSize: 1,
-      placeholder: { create: createPlaceholder },
     });
     const restored = service.restore();
 
@@ -259,7 +266,6 @@ describe("gallery service", () => {
       },
       flickrClient,
       pageSize: 1,
-      placeholder: { create: createPlaceholder },
     });
 
     expect(service.restore()).toEqual({

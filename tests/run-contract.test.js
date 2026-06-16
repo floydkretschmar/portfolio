@@ -466,13 +466,6 @@ export default {
     await writeValidPolicyFixture(fixture);
     await writeFile(join(fixture, ".eslintrc.cjs"), "module.exports = {};\n");
     assert.notEqual(runPolicyChecker(fixture).status, 0);
-
-    await writeValidPolicyFixture(fixture);
-    await writeFile(
-      join(fixture, "src/services/gallery-service.js"),
-      "export function createGalleryService() { return {}; }\n",
-    );
-    assert.notEqual(runPolicyChecker(fixture).status, 0);
   } finally {
     rmSync(fixture, { force: true, recursive: true });
   }
@@ -670,26 +663,7 @@ async function writeValidPolicyFixture(fixture) {
   );
   await writeFile(
     join(fixture, "src/services/gallery-service.js"),
-    `/**
- * @typedef {Object} FlickrPhoto
- * @property {string} id
- */
-
-/**
- * @typedef {Object} GallerySnapshot
- * @property {Array<Object>} itemList
- */
-
-/**
- * @typedef {Object} GalleryCacheEntry
- * @property {GallerySnapshot|null} value
- */
-
-/**
- * @typedef {Object} GalleryPageResult
- * @property {{ data: FlickrPhoto[], totalPages: number }} data
- */
-export function createGalleryService() {
+    `export function createGalleryService() {
   return {};
 }
 `,
@@ -710,7 +684,6 @@ function validPackagePolicy() {
   return {
     dependencies: {
       "@mdi/font": "7.4.47",
-      "roboto-fontface": "0.10.0",
       vue: "3.5.38",
       "vue-router": "5.1.0",
       vuetify: "4.1.1",
@@ -720,7 +693,6 @@ function validPackagePolicy() {
       "@playwright/test": "1.60.0",
       "@vitejs/plugin-vue": "6.0.7",
       "@vitest/coverage-v8": "4.1.8",
-      "@vue/test-utils": "2.4.11",
       eslint: "10.5.0",
       "eslint-plugin-vue": "10.9.2",
       jsdom: "29.1.1",

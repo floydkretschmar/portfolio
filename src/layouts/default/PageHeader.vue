@@ -55,11 +55,7 @@ export default {
 }
 
 @media only screen and (min-width: 1100px) {
-  .header-root {
-    padding: 3rem 2rem;
-  }
   .menu li {
-    padding: 0 1em;
     font-size: 1.6rem;
     font-weight: 300;
   }

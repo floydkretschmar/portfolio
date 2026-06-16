@@ -34,11 +34,11 @@ npm run dev
 `run.sh` is the local and CI validation entry point:
 
 ```bash
-./run.sh check       # non-mutating Prettier, ESLint, and repository policy checks
-./run.sh format      # mutating Prettier and ESLint fixes
-./run.sh test        # unit/integration tests with the behavior-unit coverage gate
-./run.sh e2e-tests   # Playwright e2e flows with deterministic mocked Flickr data
-./run.sh build       # production Vite build
+./run.sh check
+./run.sh format
+./run.sh test
+./run.sh e2e-tests
+./run.sh build
 ```
 
 Run the relevant narrow command while developing, then restore the full baseline before marking work done:

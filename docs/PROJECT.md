@@ -23,8 +23,7 @@ This repository is a static Vue 3 portfolio SPA built with Vite and Vuetify. The
 
 - The app is client-only. It has no local backend, database, or server-owned schema.
 - Photo data comes from the external Flickr service at `GET /photos/{photoset}?page={page}&limit={limit}`. This repository depends on that contract but does not own the service.
-- Durable gallery data concepts are documented with JSDoc in plain JavaScript: `FlickrPhoto`, `GallerySnapshot`, `GalleryCacheEntry`, and `GalleryPageResult`.
-- `gallery-service` is the deep behavior module. It accepts injected Flickr client, cache, page-size, and placeholder boundaries, then returns renderable gallery snapshots for the Vue layer.
+- `gallery-service` is the deep behavior module. It accepts injected Flickr client, cache, and page-size boundaries, owns placeholder generation, and returns renderable gallery snapshots for the Vue layer.
 - The Flickr client builds the existing service URL, uses native `fetch`, parses JSON, and propagates request failures to the gallery service.
 - Browser storage is isolated behind `session-cache`; cache entries are internal client data and may change shape.
 - Infinite scroll is isolated behind `observer-boundary`, which wraps native `IntersectionObserver` and disconnects on component unmount.

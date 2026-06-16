@@ -1,8 +1,3 @@
-/**
- * Creates the Flickr page client used by the gallery.
- *
- * @param {{ config: { service_base_url: string, photoset: string }, fetch: typeof globalThis.fetch }} options
- */
 export function createFlickrClient({ config, fetch }) {
   if (typeof fetch !== "function") {
     throw new TypeError("Flickr client requires a fetch function");

@@ -1,40 +1,3 @@
-/**
- * @typedef {Object} FlickrPhoto
- * @property {string=} alt
- * @property {string=} date
- * @property {string=} dateWhenTaken
- * @property {string=} fallbackUrl
- * @property {string=} fullImageUrl
- * @property {string} id
- * @property {{ fallback?: string, url?: string }=} picture
- * @property {string=} thumbnailUrl
- * @property {number=} thumbnailHeight
- * @property {{ height?: number, url?: string }=} thumbnail
- * @property {string=} title
- * @property {number|string=} views
- */
-
-/**
- * @typedef {Object} GallerySnapshot
- * @property {boolean} canLoadMore
- * @property {number} finalPageNumber
- * @property {boolean} isLoading
- * @property {Array<Object>} itemList
- * @property {number} pageCount
- * @property {number} pageNumber
- */
-
-/**
- * @typedef {Object} GalleryCacheEntry
- * @property {boolean} expired
- * @property {GallerySnapshot|null} value
- */
-
-/**
- * @typedef {Object} GalleryPageResult
- * @property {{ data: FlickrPhoto[], totalPages: number }} data
- */
-
 function normalizePhoto(photo) {
   const title = photo.title ?? "";
 
@@ -55,13 +18,21 @@ function normalizePhoto(photo) {
   };
 }
 
-function createSkeletons({ pageSize, placeholder }) {
+function createPlaceholder(index) {
+  return {
+    id: `skeleton-${index}`,
+    loaded: false,
+    thumbnail: { height: 200 + ((index * 97) % 401) },
+  };
+}
+
+function createSkeletons(pageSize) {
   return Array.from({ length: pageSize }, (_, index) =>
-    placeholder.create(index),
+    createPlaceholder(index),
   );
 }
 
-function createLoadingSnapshot({ pageSize, placeholder, snapshot }) {
+function createLoadingSnapshot({ pageSize, snapshot }) {
   const startIndex = (snapshot.pageNumber - 1) * pageSize;
   if (snapshot.itemList.length > startIndex) {
     return { ...snapshot, isLoading: true };
@@ -70,10 +41,7 @@ function createLoadingSnapshot({ pageSize, placeholder, snapshot }) {
   return {
     ...snapshot,
     isLoading: true,
-    itemList: [
-      ...snapshot.itemList,
-      ...createSkeletons({ pageSize, placeholder }),
-    ],
+    itemList: [...snapshot.itemList, ...createSkeletons(pageSize)],
   };
 }
 
@@ -84,22 +52,7 @@ function canLoadMore(snapshot) {
   );
 }
 
-/**
- * Creates the DOM-free gallery behavior service.
- *
- * @param {{
- *   cache: { read: Function, write: Function },
- *   flickrClient: { fetchPage: Function },
- *   pageSize: number,
- *   placeholder: { create: Function },
- * }} options
- */
-export function createGalleryService({
-  cache,
-  flickrClient,
-  pageSize,
-  placeholder,
-}) {
+export function createGalleryService({ cache, flickrClient, pageSize }) {
   let snapshot = {
     canLoadMore: true,
     finalPageNumber: -1,
@@ -124,7 +77,7 @@ export function createGalleryService({
 
       snapshot = {
         ...snapshot,
-        itemList: createSkeletons({ pageSize, placeholder }),
+        itemList: createSkeletons(pageSize),
       };
       return snapshot;
     },
@@ -134,7 +87,7 @@ export function createGalleryService({
       }
 
       pending = true;
-      snapshot = createLoadingSnapshot({ pageSize, placeholder, snapshot });
+      snapshot = createLoadingSnapshot({ pageSize, snapshot });
       let result;
       try {
         result = await flickrClient.fetchPage(snapshot.pageNumber, pageSize);

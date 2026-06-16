@@ -41,9 +41,6 @@ export function createSessionCache({ now, storage, ttlMs }) {
 
       return { expired: false, value: entry.data };
     },
-    remove() {
-      storage.removeItem(cacheKey);
-    },
     write(value) {
       storage.setItem(
         cacheKey,

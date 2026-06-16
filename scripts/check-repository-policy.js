@@ -37,7 +37,6 @@ const expectedNpmPolicy = new Map([
 const expectedDirectDependencies = {
   dependencies: {
     "@mdi/font": "7.4.47",
-    "roboto-fontface": "0.10.0",
     vue: "3.5.38",
     "vue-router": "5.1.0",
     vuetify: "4.1.1",
@@ -47,7 +46,6 @@ const expectedDirectDependencies = {
     "@playwright/test": "1.60.0",
     "@vitejs/plugin-vue": "6.0.7",
     "@vitest/coverage-v8": "4.1.8",
-    "@vue/test-utils": "2.4.11",
     eslint: "10.5.0",
     "eslint-plugin-vue": "10.9.2",
     jsdom: "29.1.1",
@@ -68,12 +66,6 @@ const runtimeValidationLibraries = [
   "yup",
   "zod",
   "io-ts",
-];
-const publicDataContracts = [
-  "FlickrPhoto",
-  "GallerySnapshot",
-  "GalleryCacheEntry",
-  "GalleryPageResult",
 ];
 const packageJson = readJson("package.json");
 
@@ -345,7 +337,6 @@ function checkModernizationPolicy() {
   const dependencies = packageJson.dependencies ?? {};
   const devDependencies = packageJson.devDependencies ?? {};
   const allDirectDependencies = { ...dependencies, ...devDependencies };
-  const galleryService = readRequiredText("src/services/gallery-service.js");
 
   return [
     ...checkExpectedDirectDependencies("dependencies", dependencies),
@@ -360,11 +351,6 @@ function checkModernizationPolicy() {
       .map(
         (name) =>
           `package.json must not introduce runtime validation library ${name}`,
-      ),
-    ...publicDataContracts
-      .filter((name) => !galleryService.includes(`@typedef {Object} ${name}`))
-      .map(
-        (name) => `public data contract ${name} must be documented with JSDoc`,
       ),
     ...findFiles(".", (path) => isTypeScriptResidue(path)).map(
       (path) => `${path} must not keep TypeScript source/config residue`,

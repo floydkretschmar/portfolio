@@ -36,7 +36,6 @@
 .text-container {
   max-width: 85vw;
   margin-top: 2rem;
-  margin-left: 0px;
   margin-bottom: 2rem;
 }
 

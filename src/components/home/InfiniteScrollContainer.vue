@@ -36,7 +36,6 @@ export default {
     const data = this.gallery.restore();
     this.applySnapshot(data);
 
-    // cache was empty or freshly invalidated -> treat as new page load
     if (data.finalPageNumber === -1) {
       this.load();
     }
@@ -67,16 +66,6 @@ export default {
         cache: this.cache(),
         flickrClient,
         pageSize: config.gallery_page_size,
-        placeholder: {
-          create: (index) => ({
-            id: `skeleton-${index}`,
-            loaded: false,
-            thumbnail: {
-              // Do some random height between 200 and 700 for the image skeleton loader
-              height: 400 + this.generateRandomInteger(-200, 200),
-            },
-          }),
-        },
       });
     },
     createObserverBoundary() {
@@ -98,9 +87,6 @@ export default {
       const snapshot = await this.gallery.loadNext();
       this.applySnapshot(snapshot);
       return snapshot;
-    },
-    generateRandomInteger(min, max) {
-      return Math.floor(min + Math.random() * (max - min + 1));
     },
   },
 };

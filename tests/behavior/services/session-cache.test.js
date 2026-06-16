@@ -69,24 +69,6 @@ describe("session cache", () => {
     expect(storage.getItem("home-data")).toBeNull();
   });
 
-  it("removes a cache entry through the public adapter contract", () => {
-    const cache = createSessionCache({
-      now: () => 1000,
-      storage: createStorage(),
-      ttlMs: 500,
-    });
-    cache.write({
-      finalPageNumber: 3,
-      itemList: [{ id: "cached-photo" }],
-      pageCount: 20,
-      pageNumber: 2,
-    });
-
-    cache.remove();
-
-    expect(cache.read()).toEqual({ expired: false, value: null });
-  });
-
   it("reports expired entries using TTL metadata owned by the cache boundary", () => {
     const storage = createStorage();
     const cache = createSessionCache({
