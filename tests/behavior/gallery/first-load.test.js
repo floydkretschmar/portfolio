@@ -110,7 +110,15 @@ function seedCachedPhotos(photos, options) {
 function visiblePhotoTitles() {
   return Array.from(document.querySelectorAll(".image-container .item img"))
     .map((image) => image.getAttribute("alt"))
-    .filter(Boolean);
+    .filter(Boolean)
+    .sort();
+}
+
+function photoTitles(...pages) {
+  return pages
+    .flat()
+    .map((photo) => photo.title)
+    .sort();
 }
 
 function visibleGalleryImages() {
@@ -290,9 +298,7 @@ describe("first gallery load", () => {
       waitForPhoto: false,
     });
 
-    expect(visiblePhotoTitles()).toEqual(
-      cachedPhotos.map((photo) => photo.title),
-    );
+    expect(visiblePhotoTitles()).toEqual(photoTitles(cachedPhotos));
     expect(fetch).not.toHaveBeenCalled();
     app.unmount();
   });
@@ -354,19 +360,8 @@ describe("first gallery load", () => {
 
     expect(fetch).toHaveBeenCalledTimes(2);
     expect(fetch).toHaveBeenLastCalledWith(flickrUrl(2));
-    expect(visiblePhotoTitles()).toEqual([
-      ...firstPage.map((photo) => photo.title),
-      ...finalPage.map((photo) => photo.title),
-    ]);
+    expect(visiblePhotoTitles()).toEqual(photoTitles(firstPage, finalPage));
     expect(galleryLayout()).not.toBeNull();
-    expect(
-      Array.from(galleryLayout().querySelectorAll("img.image")).map((image) =>
-        image.getAttribute("alt"),
-      ),
-    ).toEqual([
-      ...firstPage.map((photo) => photo.title),
-      ...finalPage.map((photo) => photo.title),
-    ]);
     expect(visibleGalleryImages()).toHaveLength(
       firstPage.length + finalPage.length,
     );
@@ -465,7 +460,7 @@ describe("first gallery load", () => {
     expect(
       document.querySelectorAll(".image-container .v-skeleton-loader").length,
     ).toBeGreaterThan(0);
-    expect(visiblePhotoTitles()).toEqual(firstPage.map((photo) => photo.title));
+    expect(visiblePhotoTitles()).toEqual(photoTitles(firstPage));
 
     pageTwo.resolve(fetchResponse(pageResponse(secondPage, 2).data));
     await vi.waitFor(
@@ -476,10 +471,7 @@ describe("first gallery load", () => {
       },
       { timeout: 1000 },
     );
-    expect(visiblePhotoTitles()).toEqual([
-      ...firstPage.map((photo) => photo.title),
-      ...secondPage.map((photo) => photo.title),
-    ]);
+    expect(visiblePhotoTitles()).toEqual(photoTitles(firstPage, secondPage));
     app.unmount();
   }, 15000);
 
@@ -540,10 +532,7 @@ describe("first gallery load", () => {
         "recoverable-second-page photo 3",
       );
     });
-    expect(visiblePhotoTitles()).toEqual([
-      ...firstPage.map((photo) => photo.title),
-      ...secondPage.map((photo) => photo.title),
-    ]);
+    expect(visiblePhotoTitles()).toEqual(photoTitles(firstPage, secondPage));
     app.unmount();
   }, 30000);
 });

@@ -115,6 +115,40 @@ async function mockImages(page, responseDelay = 0) {
   });
 }
 
+function galleryCards(page) {
+  return page.locator(".image-container").evaluate((container) =>
+    Array.from(container.querySelectorAll(".item"))
+      .filter((card) => window.getComputedStyle(card).display !== "none")
+      .map((card) => {
+        const box = card.getBoundingClientRect();
+
+        return {
+          bottom: Math.round(box.bottom + window.scrollY),
+          title: card.querySelector("img")?.getAttribute("alt") ?? null,
+          top: Math.round(box.top + window.scrollY),
+          x: Math.round(box.left),
+        };
+      }),
+  );
+}
+
+function expectAppendedBelow(existingCards, currentCards, appendedCards) {
+  expect(
+    currentCards.filter((card) =>
+      existingCards.some((existing) => existing.title === card.title),
+    ),
+  ).toEqual(existingCards);
+
+  for (const appended of appendedCards) {
+    const columnBottom = Math.max(
+      ...existingCards
+        .filter((existing) => existing.x === appended.x)
+        .map((existing) => existing.bottom),
+    );
+    expect(appended.top).toBeGreaterThanOrEqual(columnBottom);
+  }
+}
+
 test("Home renders mocked Flickr photos after the first loading presentation", async ({
   page,
 }) => {
@@ -197,7 +231,7 @@ test("Home keeps skeletons visible while mocked image fixtures are delayed", asy
   expect(await page.locator(".v-skeleton-loader").count()).toBeGreaterThan(0);
   expect(
     await page.locator(".image-container").evaluate((container) =>
-      Array.from(container.children)
+      Array.from(container.querySelectorAll(".item"))
         .filter((item) => window.getComputedStyle(item).display !== "none")
         .every(
           (item) =>
@@ -254,13 +288,18 @@ test("Home appends page two once when bottom scrolling repeats during the pendin
 
   await page.goto("/");
 
-  await expect(page.getByText("e2e-first-page photo 20")).toBeAttached();
+  await expect(page.getByAltText("e2e-first-page photo 20")).toBeVisible();
+  await expect(page.locator(".image-container .v-skeleton-loader")).toHaveCount(
+    0,
+  );
+  const pageOneCards = await galleryCards(page);
 
   await page.evaluate(() => window.scrollTo(0, document.body.scrollHeight));
   await flickr.pageTwoPending;
-  expect(
-    await page.locator(".image-container .v-skeleton-loader").count(),
-  ).toBeGreaterThan(0);
+  const pendingCards = await galleryCards(page);
+  const skeletonCards = pendingCards.filter((card) => card.title === null);
+  expect(skeletonCards.length).toBeGreaterThan(0);
+  expectAppendedBelow(pageOneCards, pendingCards, skeletonCards);
   expect(flickr.requests.filter((pageNumber) => pageNumber === 2)).toHaveLength(
     1,
   );
@@ -278,6 +317,13 @@ test("Home appends page two once when bottom scrolling repeats during the pendin
   expect(flickr.requests.filter((pageNumber) => pageNumber === 2)).toHaveLength(
     1,
   );
+
+  const finalCards = await galleryCards(page);
+  const pageTwoCards = finalCards.filter((card) =>
+    card.title?.startsWith("e2e-second-page"),
+  );
+  expectAppendedBelow(pageOneCards, finalCards, pageTwoCards);
+  expect(new Set(pageTwoCards.map((card) => card.x)).size).toBe(3);
 });
 
 test("Home opens and closes a loaded image dialog without blocking the gallery", async ({
