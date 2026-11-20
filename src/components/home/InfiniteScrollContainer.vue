@@ -1,7 +1,17 @@
 <template>
   <div>
-    <div class="image-container" data-gallery-layout="masonry">
-      <image-card v-for="image in itemList" :key="image.id" :image="image" />
+    <div
+      class="image-container"
+      data-gallery-layout="masonry"
+      :style="{ '--gallery-column-count': columns.length }"
+    >
+      <div
+        v-for="(column, index) in columns"
+        :key="index"
+        class="gallery-column"
+      >
+        <image-card v-for="image in column" :key="image.id" :image="image" />
+      </div>
     </div>
     <div ref="sentinel" class="gallery-sentinel" aria-hidden="true"></div>
   </div>
@@ -19,6 +29,23 @@ const flickrClient = createFlickrClient({
   config,
   fetch: (...args) => window.fetch(...args),
 });
+const columnBreakpoints = [760, 1130, 1500, 1870];
+
+// Places each card in the currently shortest column, so appended cards always
+// land at the bottom and earlier cards never move between columns.
+function distributeIntoColumns(items, columnCount) {
+  const heights = Array(columnCount).fill(0);
+  const columns = heights.map(() => []);
+
+  for (const item of items) {
+    const shortest = heights.indexOf(Math.min(...heights));
+    columns[shortest].push(item);
+    heights[shortest] += item.thumbnail.height;
+  }
+
+  return columns;
+}
+
 export default {
   data: () => ({
     canLoadMore: true,
@@ -30,6 +57,16 @@ export default {
   }),
   components: {
     ImageCard,
+  },
+  computed: {
+    columns() {
+      const width = this.$vuetify.display.width;
+      const columnCount =
+        1 +
+        columnBreakpoints.filter((breakpoint) => width >= breakpoint).length;
+
+      return distributeIntoColumns(this.itemList, columnCount);
+    },
   },
   created() {
     this.gallery = this.createGallery();
@@ -97,10 +134,10 @@ export default {
 <style lang="scss" scoped>
 .image-container {
   --gallery-card-width: 350px;
-  --gallery-column-count: 1;
   --gallery-gap: 20px;
-  column-count: var(--gallery-column-count);
-  column-gap: var(--gallery-gap);
+  align-items: flex-start;
+  display: flex;
+  gap: var(--gallery-gap);
   margin: auto;
   width: min(
     calc(
@@ -111,28 +148,9 @@ export default {
   );
 }
 
-@media (min-width: 760px) {
-  .image-container {
-    --gallery-column-count: 2;
-  }
-}
-
-@media (min-width: 1130px) {
-  .image-container {
-    --gallery-column-count: 3;
-  }
-}
-
-@media (min-width: 1500px) {
-  .image-container {
-    --gallery-column-count: 4;
-  }
-}
-
-@media (min-width: 1870px) {
-  .image-container {
-    --gallery-column-count: 5;
-  }
+.gallery-column {
+  flex: 1;
+  min-width: 0;
 }
 
 .gallery-sentinel {

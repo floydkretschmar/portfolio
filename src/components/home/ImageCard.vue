@@ -57,7 +57,6 @@ export default {
 
 <style lang="scss">
 .item {
-  break-inside: avoid;
   display: block;
   margin-bottom: var(--gallery-gap, 20px);
   overflow: hidden;

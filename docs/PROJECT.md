@@ -10,7 +10,7 @@ This repository is a static Vue 3 portfolio SPA built with Vite and Vuetify. The
 | `src/router/`                                | Vue Router routes for the default layout, Home/gallery, and About pages. Router base handling comes from Vite.                                                                |
 | `src/layouts/default/`                       | Shared application shell with the header and nested route content host.                                                                                                       |
 | `src/views/`                                 | Page-level Home and About views. Home delegates gallery behavior to the gallery component tree.                                                                               |
-| `src/components/home/`                       | Gallery rendering components: infinite-scroll host, CSS masonry layout contract, image cards, loading skeletons, and image dialog behavior.                                   |
+| `src/components/home/`                       | Gallery rendering components: infinite-scroll host, masonry column layout contract, image cards, loading skeletons, and image dialog behavior.                                |
 | `src/services/gallery-service.js`            | DOM-free gallery behavior service for snapshots, pagination, cache restore, placeholder generation, duplicate-load prevention, failed-load recovery, and final-page handling. |
 | `src/services/flickr-client.js`              | Native-fetch client for the external Flickr service request contract.                                                                                                         |
 | `src/services/session-cache.js`              | Injected browser-storage cache boundary with TTL and invalid-data recovery.                                                                                                   |
@@ -27,7 +27,7 @@ This repository is a static Vue 3 portfolio SPA built with Vite and Vuetify. The
 - The Flickr client builds the existing service URL, uses native `fetch`, parses JSON, and propagates request failures to the gallery service.
 - Browser storage is isolated behind `session-cache`; cache entries are internal client data and may change shape.
 - Infinite scroll is isolated behind `observer-boundary`, which wraps native `IntersectionObserver` and disconnects on component unmount.
-- Masonry is CSS-only behind the gallery layout contract. No masonry package or imperative masonry runtime is part of the production path.
+- Masonry renders flex columns behind the gallery layout contract. Cards are distributed declaratively into the currently shortest column (by thumbnail height), so appended cards and skeletons land at the bottom and earlier cards never move. No masonry package or measuring runtime is part of the production path.
 
 ## Validation And Operations
 
