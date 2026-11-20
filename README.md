@@ -64,4 +64,4 @@ GitHub Actions installs with `npm ci`, runs the split validation gates, and depl
 
 ## Dependency Policy
 
-Dependencies are npm-only, lockfile-backed, and exact-pinned. `.npmrc` enforces strict engines, exact saves, and a seven-day minimum package release age. The client targets modern evergreen browsers; it does not use TypeScript, runtime schema validation libraries, legacy polyfill packages, Axios, or a masonry runtime package.
+Dependencies are npm-only, lockfile-backed, and exact-pinned. `.npmrc` enforces strict engines, exact saves, a seven-day minimum package release age, and disables dependency lifecycle scripts (`ignore-scripts`). The client targets modern evergreen browsers; it does not use TypeScript, runtime schema validation libraries, legacy polyfill packages, Axios, or a masonry runtime package.
